@@ -17,20 +17,20 @@ def ordered (a b : V) : Edge := (min a b, max a b)
 def support (t : Term) : Finset Edge :=
   (t.1 ×ˢ t.2).image fun p => ordered p.1 p.2
 
-private theorem edge_count : edges.card = 12 := by decide +kernel
+theorem edge_count : edges.card = 12 := by decide +kernel
 
 set_option maxRecDepth 12000 in
 set_option maxHeartbeats 2500000 in
-private theorem no_square : ∀ a b c d : V, a ≠ b → c ≠ d →
+theorem no_square : ∀ a b c d : V, a ≠ b → c ≠ d →
     ordered a c ∈ edges → ordered a d ∈ edges → ordered b c ∈ edges →
     ordered b d ∉ edges := by decide +kernel
 
 set_option maxRecDepth 12000 in
 set_option maxHeartbeats 2500000 in
-private theorem cover_size : ∀ T : Finset V,
+theorem cover_size : ∀ T : Finset V,
     (∀ e ∈ edges, e.1 ∈ T ∨ e.2 ∈ T) → 5 ≤ T.card := by decide +kernel
 
-private theorem singleton_side (t : Term) (left : t.1.Nonempty) (right : t.2.Nonempty)
+theorem singleton_side (t : Term) (left : t.1.Nonempty) (right : t.2.Nonempty)
     (valid : support t ⊆ edges) : t.1.card = 1 ∨ t.2.card = 1 := by
   have mem (a b : V) (ha : a ∈ t.1) (hb : b ∈ t.2) : ordered a b ∈ edges :=
     valid (Finset.mem_image.mpr ⟨(a,b), Finset.mem_product.mpr ⟨ha,hb⟩, rfl⟩)
