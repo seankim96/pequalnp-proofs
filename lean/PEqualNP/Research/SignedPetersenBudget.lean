@@ -115,6 +115,58 @@ theorem output_antitone {n : Nat} (P : Program n) (out : Pin) (paid : Finset Nat
   rw [sign]
   cases hx : P.value x out.1 <;> cases hy : P.value y out.1 <;> simp_all
 
+/-- A prescribed negative row and positive row separate the entire class
+of complemented-output programs with at most one paid source. -/
+def Separates (a b : Input) : Prop :=
+  ∀ {n : Nat} (P : Program n) (out : Pin) (paid : Finset Nat), paid.card ≤ 1 →
+    out.1 < 10+n → Allowed paid out →
+    (∀ j, Allowed paid (P.left j) ∧ Allowed paid (P.right j)) → out.2 = true →
+    (P.value a out.1 ^^ out.2) ≠ false ∨ (P.value b out.1 ^^ out.2) ≠ true
+
+private def projection (i : Fin 9) (invert : Bool) : Program 13 where
+  op _ := false
+  left _ := (i.val,invert)
+  right _ := (i.val,invert)
+  value x k := if h : k < 9 then x ⟨k,h⟩ else if k = 9 then false else x i ^^ invert
+  earlier := by intro j; have := i.isLt; dsimp; omega
+  inputs := by intro x k; simp [k.isLt]
+  zero := by simp
+  step := by
+    intro x j
+    have large : ¬10+j.val < 9 := by omega
+    have later : 10+j.val ≠ 9 := by omega
+    simp [large,later,i.isLt]
+
+private theorem separating_projection {a b : Input} (h : Separates a b)
+    (i : Fin 9) (invert : Bool) (canInvert : invert = false ∨ i.val = 0) :
+    ((a i ^^ invert) ^^ true) ≠ false ∨ ((b i ^^ invert) ^^ true) ≠ true := by
+  let P := projection i invert
+  have allowed : ∀ j, Allowed {22} (P.left j) ∧ Allowed {22} (P.right j) := by
+    rcases canInvert with none|free
+    · simp [P,projection,Allowed,none]
+    · simp [P,projection,Allowed,free]
+  simpa [P,projection] using
+    h P (22,true) {22} (by simp) (by decide) (by simp [Allowed]) allowed rfl
+
+/-- This characterizes every ordered two-row test, including incomparable
+rows. If the order or the fixed-coordinate condition fails, a signed input
+projection on a thirteen-gate program passes both rows. -/
+theorem separates_iff (a b : Input) :
+    Separates a b ↔ a 0 = b 0 ∧ ∀ i, a i = true → b i = true := by
+  constructor
+  · intro h
+    have order (i : Fin 9) (on : a i = true) : b i = true := by
+      have v := separating_projection h i false (Or.inl rfl)
+      cases eb : b i <;> simp_all
+    refine ⟨?_,order⟩
+    have forward := order 0
+    have backward := separating_projection h 0 true (Or.inr rfl)
+    cases ea : a 0 <;> cases eb : b 0 <;> simp_all
+  · rintro ⟨fixed,order⟩ _ P out paid one bound ok pins sign
+    by_contra! both
+    have h := output_antitone P out paid one bound ok pins sign a b order fixed both.2
+    simp_all
+
 def zeroInput : Input := fun _ => false
 def edgeInput : Input := fun i => decide (i = 1 ∨ i = 2)
 
