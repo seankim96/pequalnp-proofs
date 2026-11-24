@@ -79,6 +79,42 @@ theorem monotone_to_cut {n cut : Nat} (P : Program n) (bound : cut < 10+n)
     · exact pin (P.left j) (by simp) (atGate ▸ (P.earlier j).1)
     · exact pin (P.right j) (by simp) (atGate ▸ (P.earlier j).2)
 
+/-- With only one paid source, a complemented output is antitone in all
+eight ordinary inputs when the distinguished input is fixed. -/
+theorem output_antitone {n : Nat} (P : Program n) (out : Pin) (paid : Finset Nat)
+    (only : paid.card ≤ 1) (bound : out.1 < 10+n) (outOK : Allowed paid out)
+    (pins : ∀ j, Allowed paid (P.left j) ∧ Allowed paid (P.right j))
+    (sign : out.2 = true) (x y : Input)
+    (xy : ∀ i, x i = true → y i = true) (fixed : x 0 = y 0) :
+    (P.value y out.1 ^^ out.2) = true → (P.value x out.1 ^^ out.2) = true := by
+  have rising : P.value x out.1 = true → P.value y out.1 = true := by
+    by_cases seed : out.1 < 9
+    · let i : Fin 9 := ⟨out.1,seed⟩
+      have vx := P.inputs x i
+      have vy := P.inputs y i
+      change P.value x out.1 = x i at vx
+      change P.value y out.1 = y i at vy
+      simpa only [vx,vy] using xy i
+    by_cases const : out.1 = 9
+    · simp [const,P.zero]
+    have late : 10 ≤ out.1 := by omega
+    have used : out.1 ∈ paid := (outOK sign).resolve_left (by omega) |>.resolve_left (by omega)
+    apply monotone_to_cut P bound ?_ x y xy fixed out.1 le_rfl
+    intro j before p member phase
+    have spec : Allowed paid p ∧ p.1 < 10+j.val := by
+      simp only [List.mem_cons,List.not_mem_nil,or_false] at member
+      rcases member with rfl|rfl
+      · exact ⟨(pins j).1,(P.earlier j).1⟩
+      · exact ⟨(pins j).2,(P.earlier j).2⟩
+    rcases spec.1 phase with free|zero|other
+    · exact Or.inl free
+    · exact Or.inr zero
+    · have eq := Finset.card_le_one.mp only _ other _ used
+      have := spec.2
+      omega
+  rw [sign]
+  cases hx : P.value x out.1 <;> cases hy : P.value y out.1 <;> simp_all
+
 def zeroInput : Input := fun _ => false
 def edgeInput : Input := fun i => decide (i = 1 ∨ i = 2)
 
@@ -91,47 +127,36 @@ theorem complemented_pair {n : Nat} (P : Program n) (out : Pin) (paid : Finset N
     (P.value zeroInput out.1 ^^ out.2) ≠ petersenF zeroInput ∨
     (P.value edgeInput out.1 ^^ out.2) ≠ petersenF edgeInput := by
   by_contra! both
-  let x := zeroInput
-  let y := edgeInput
-  have hitZero : (P.value x out.1 ^^ out.2) = petersenF x := both.1
-  have hitEdge : (P.value y out.1 ^^ out.2) = petersenF y := both.2
-  have fx : petersenF x = false := by decide +kernel
-  have fy : petersenF y = true := by decide +kernel
-  have first : P.value x out.1 = true := by
-    have h := hitZero
-    rw [sign,fx] at h
-    cases v : P.value x out.1 <;> simp_all
-  have last : P.value y out.1 = false := by
-    have h := hitEdge
-    rw [sign,fy] at h
-    cases v : P.value y out.1 <;> simp_all
-  have late : 10 ≤ out.1 := by
-    by_contra h
-    by_cases raw : out.1 < 9
-    · have h := P.inputs x ⟨out.1,raw⟩
-      change P.value x out.1 = false at h
-      simp_all
-    · have eq : out.1 = 9 := by omega
-      rw [eq,P.zero] at first
-      contradiction
-  have used : out.1 ∈ paid := (outOK sign).resolve_left (by omega) |>.resolve_left (by omega)
-  have available (j : Fin n) (hj : 10 + j.val ≤ out.1) (p : Pin)
-      (hm : p ∈ [P.left j,P.right j]) (hp : p.2 = true) : p.1 = 0 ∨ p.1 = 9 := by
-    have spec : Allowed paid p ∧ p.1 < 10 + j.val := by
-      simp only [List.mem_cons,List.not_mem_nil,or_false] at hm
-      rcases hm with rfl|rfl
-      · exact ⟨(pins j).1,(P.earlier j).1⟩
-      · exact ⟨(pins j).2,(P.earlier j).2⟩
-    rcases spec.1 hp with free|const|other
-    · exact Or.inl free
-    · exact Or.inr const
-    · have eq := Finset.card_le_one.mp only _ other _ used
-      have := spec.2
-      omega
-  have rise := monotone_to_cut P bound available x y (by simp [x,zeroInput]) (by decide +kernel)
-    out.1 le_rfl first
+  have zero := both.1
+  have edge := both.2
+  rw [show petersenF zeroInput = false from by decide +kernel] at zero
+  rw [show petersenF edgeInput = true from by decide +kernel] at edge
+  have h := output_antitone P out paid only bound outOK pins sign zeroInput edgeInput
+    (by simp [zeroInput]) (by decide +kernel) edge
   simp_all
 
+/-- A single test never suffices: a thirteen-gate signed circuit with a
+complemented last output and exactly one paid source can pass any one row. -/
+theorem each_row_attainable (row : Input) : ∃ (P : Program 13) (paid : Finset Nat),
+    paid.card = 1 ∧ Allowed paid (22,true) ∧
+    (∀ j, Allowed paid (P.left j) ∧ Allowed paid (P.right j)) ∧
+    (P.value row 22 ^^ true) = petersenF row := by
+  let goal := petersenF row
+  let P : Program 13 := {
+    op := fun _ => goal
+    left := fun _ => (0,false)
+    right := fun _ => (0,true)
+    value := fun x k => if h : k < 9 then x ⟨k,h⟩ else if k = 9 then false else !goal
+    earlier := fun _ => by simp
+    inputs := fun _ i => by simp [i.isLt]
+    zero := fun _ => by simp
+    step := by
+      intro x j
+      have large : ¬10+j.val < 9 := by omega
+      have later : 10+j.val ≠ 9 := by omega
+      simp [large,later] }
+  refine ⟨P,{22},by simp,by simp [Allowed],fun _ => by simp [P,Allowed],?_⟩
+  simp [P,goal]
 
 /-- The thirteen-binary-gate floor leaves at most one paid source in the
 fourteen-unit budget, so every correct program has a positive output. -/
