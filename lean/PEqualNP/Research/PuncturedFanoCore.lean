@@ -1,4 +1,3 @@
-import Std.Tactic.BVDecide
 import Mathlib.Data.List.Basic
 import PEqualNP.Defs.LratEncoding
 import PEqualNP.Library.LRAT.Link
@@ -6,6 +5,9 @@ import PEqualNP.Library.LRAT.Link
 /-! Exact completions of the punctured Fano incidence test. Bit i is coordinate i.
 The two distinguished endpoints are 0 and 7. The remaining cycle is ordered
 2,12,5,9,6,11,4,13 around its eight edges. -/
+
+set_option maxRecDepth 16000
+set_option maxHeartbeats 0
 
 namespace PEqualNP.Research.PuncturedFanoCore
 
@@ -75,30 +77,93 @@ def independent (z : Core) : Bool :=
 
 abbrev sub {w : ℕ} (x y : BitVec w) : Prop := x &&& y = x
 
+/-- Balanced enumeration keeps the kernel reduction stack logarithmic. -/
+private def block (p : Nat → Bool) : Nat → Nat → Bool
+  | 0, start => p start
+  | depth+1, start => block p depth start && block p depth (start + 2^depth)
+
+private theorem block_sound (p : Nat → Bool) (depth start i : Nat)
+    (low : start ≤ i) (high : i < start + 2^depth)
+    (ok : block p depth start = true) : p i = true := by
+  induction depth generalizing start with
+  | zero =>
+    have eq : start = i := by
+      simp only [pow_zero] at high
+      omega
+    simpa [block,eq] using ok
+  | succ d ih =>
+    rw [pow_succ] at high
+    obtain ⟨left,right⟩ := Bool.and_eq_true_iff.mp ok
+    by_cases early : i < start + 2^d
+    · exact ih start low early left
+    · exact ih (start+2^d) (by omega) (by omega) right
+
+private theorem block_join {p : Nat → Bool} {d s : Nat}
+    (lo : block p d s = true) (hi : block p d (s + 2^d) = true) :
+    block p (d+1) s = true := Bool.and_eq_true_iff.mpr ⟨lo,hi⟩
+
+private theorem all_words {n : Nat} (P : BitVec n → Prop) [DecidablePred P]
+    (ok : block (fun i => decide (P (BitVec.ofNat n i))) n 0 = true) (x : BitVec n) : P x := by
+  have h := block_sound _ n 0 x.toNat (Nat.zero_le _) (by simpa using x.isLt) ok
+  simpa using of_decide_eq_true h
+
 theorem decode (z : Core) : readCore (embed z) = z := by
-  unfold readCore embed
-  bv_decide
+  revert z
+  apply all_words
+  iterate 6 (all_goals apply block_join)
+  all_goals as_aux_lemma => decide +kernel
 
 theorem gap (x : Word) :
     full x = true ∧ kept x = false ↔ x = embed (readCore x) ∧ independent (readCore x) = true := by
-  unfold full kept embed readCore independent
-  bv_decide
+  revert x
+  apply all_words
+  iterate 6 (all_goals apply block_join)
+  all_goals as_aux_lemma => decide +kernel
 
-private theorem kept_mono (x y : Word) : sub x y → kept x = true → kept y = true := by
-  unfold sub kept
-  bv_decide
+private theorem bit_mono {n : Nat} {x y : BitVec n} (h : sub x y) (i : Nat) :
+    x.getLsbD i = true → y.getLsbD i = true := by
+  have z := congrArg (fun v : BitVec n => v.getLsbD i) h
+  change (x &&& y).getLsbD i = x.getLsbD i at z
+  rw [BitVec.getLsbD_and] at z
+  intro yes
+  simpa [yes] using z
 
-private theorem full_mono (x y : Word) : sub x y → full x = true → full y = true := by
-  unfold sub full kept
-  bv_decide
+private def keptPairs : List (Nat × Nat) := [(0,8),(0,10),(1,7),(1,9),(1,13),(2,8),(2,12),(2,13),(3,7),(3,11),(3,12),(4,10),(4,11),(4,13),(5,9),(5,10),(5,12),(6,8),(6,9),(6,11)]
 
-private theorem read_mono (x y : Word) : sub x y → sub (readCore x) (readCore y) := by
-  unfold sub readCore
-  bv_decide
+private theorem kept_list (x : Word) : kept x =
+    keptPairs.any (fun e => x.getLsbD e.1 && x.getLsbD e.2) := by
+  simp [kept,keptPairs,Bool.or_assoc]
 
-private theorem embed_mono (z w : Core) : sub z w → sub (embed z) (embed w) := by
-  unfold sub embed
-  bv_decide
+private theorem kept_mono (x y : Word) (le : sub x y) (hot : kept x = true) : kept y = true := by
+  rw [kept_list] at hot ⊢
+  obtain ⟨e,he,bits⟩ := List.any_eq_true.mp hot
+  obtain ⟨a,b⟩ := Bool.and_eq_true_iff.mp bits
+  exact List.any_eq_true.mpr ⟨e,he,Bool.and_eq_true_iff.mpr ⟨bit_mono le _ a,bit_mono le _ b⟩⟩
+
+private theorem full_mono (x y : Word) (le : sub x y) (hot : full x = true) : full y = true := by
+  rcases Bool.or_eq_true_iff.mp hot with low|extra
+  · exact Bool.or_eq_true_iff.mpr (Or.inl (kept_mono x y le low))
+  · obtain ⟨a,b⟩ := Bool.and_eq_true_iff.mp extra
+    exact Bool.or_eq_true_iff.mpr (Or.inr (Bool.and_eq_true_iff.mpr ⟨bit_mono le _ a,bit_mono le _ b⟩))
+
+private theorem append_mono {u v : Nat} {x y : BitVec u} {z w : BitVec v}
+    (a : sub x y) (b : sub z w) : sub (x ++ z) (y ++ w) := by
+  change (x ++ z) &&& (y ++ w) = x ++ z
+  rw [BitVec.and_append, a, b]
+
+private theorem ofBit_mono {u : Nat} {x y : BitVec u} (le : sub x y) (i : Nat) :
+    sub (BitVec.ofBool (x.getLsbD i)) (BitVec.ofBool (y.getLsbD i)) := by
+  change _ &&& _ = _
+  rw [BitVec.ofBool_and_ofBool, ← BitVec.getLsbD_and]
+  exact congrArg (fun t : BitVec u => BitVec.ofBool (t.getLsbD i)) le
+
+private theorem read_mono (x y : Word) (le : sub x y) : sub (readCore x) (readCore y) := by
+  unfold readCore
+  repeat first | apply append_mono | exact ofBit_mono le _
+
+private theorem embed_mono (z w : Core) (le : sub z w) : sub (embed z) (embed w) := by
+  unfold embed
+  repeat first | apply append_mono | exact ofBit_mono le _ | exact BitVec.and_self
 
 abbrev MonotoneBits {w : ℕ} (f : BitVec w → Bool) : Prop :=
   ∀ x y, sub x y → f x = true → f y = true
@@ -175,9 +240,10 @@ def representatives : List Core := [1,5,9,17,21,37,85]
 
 theorem seven_orbits (z : Core) : independent z = true → z ≠ 0 →
     (orbit z).any (fun t => representatives.contains t) = true := by
-  unfold independent representatives orbit reflect
-  simp only [List.any_cons,List.any_nil,List.contains_cons,List.contains_nil]
-  bv_decide
+  revert z
+  apply all_words
+  iterate 6 (all_goals apply block_join)
+  all_goals as_aux_lemma => decide +kernel
 
 /-- The seven representatives are all independent, nonempty and pairwise
 inequivalent under rotations and reflections. -/
@@ -239,23 +305,27 @@ theorem graph_symmetries (x : Word) :
     readCore (rotateLabels x) = (readCore x).rotateLeft 1 ∧
     full (reflectLabels x) = full x ∧ kept (reflectLabels x) = kept x ∧
     readCore (reflectLabels x) = reflect (readCore x) := by
-  unfold rotateLabels reflectLabels full kept readCore reflect
-  bv_decide
+  revert x
+  apply all_words
+  iterate 6 (all_goals apply block_join)
+  all_goals as_aux_lemma => decide +kernel
 
 def positiveRows : List Word := [130,136,257,260,320,514,544,576,1025,1040,1056,2056,2064,2112,4100,4104,4128,8194,8196,8208]
 def maximalNegativeRows : List Word := [127,244,314,432,541,660,792,1102,1220,1290,1548,2087,2212,2338,2565,3078,3716,4179,4304,4370,4625,5008,5186,6147,7426,8297,8416,8488,8713,9288,9992,10273,10656,12353,13504,14849,16256]
 
 theorem includes_positive (x : Word) : kept x = true →
     positiveRows.any (fun y => decide (sub y x)) = true := by
-  unfold kept positiveRows sub
-  simp only [List.any_cons,List.any_nil]
-  bv_decide
+  revert x
+  apply all_words
+  iterate 6 (all_goals apply block_join)
+  all_goals as_aux_lemma => decide +kernel
 
 theorem extends_negative (x : Word) : full x = false →
     maximalNegativeRows.any (fun y => decide (sub x y)) = true := by
-  unfold full kept maximalNegativeRows sub
-  simp only [List.any_cons,List.any_nil]
-  bv_decide
+  revert x
+  apply all_words
+  iterate 6 (all_goals apply block_join)
+  all_goals as_aux_lemma => decide +kernel
 
 def passes (f : Word → Bool) : Prop :=
   (∀ x ∈ positiveRows, f x = true) ∧ (∀ y ∈ maximalNegativeRows, f y = false) ∧ f (embed 0) = false
