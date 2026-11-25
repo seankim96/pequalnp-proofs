@@ -69,13 +69,13 @@ def negate(literal: int | bool) -> int | bool:
 
 
 class Encoding:
-    def __init__(self, prefix: tuple[Gate, Gate], size: int):
+    def __init__(self, prefix: tuple[Gate, ...], size: int):
         self.prefix = prefix
         self.size = size
         self.variables = 0
         self.clauses = []
         self.gates = []
-        for gate in range(2, size):
+        for gate in range(len(prefix), size):
             choices = Choices(self.fresh(), [self.fresh() for _ in range(26 + gate)],
                               [self.fresh() for _ in range(26 + gate)])
             self.gates.append(choices)
@@ -128,12 +128,25 @@ class Encoding:
         return list(self.prefix) + [(g.is_and in true, index(g.left), index(g.right)) for g in self.gates]
 
 
-def search(case: int, seconds: int, solver: str, out: Path | None, all_positives: bool = False) -> str:
+def search(case: int, seconds: int, solver: str, out: Path | None, all_positives: bool = False,
+           point_quadrangles: bool = False, zero_third: bool = False) -> str:
     rows = test_rows()
+    if point_quadrangles:
+        point_mask = (1 << 13) - 1
+        rows = [(r, y) for r, y in rows if y or (r & point_mask).bit_count() == 4]
+        if len(rows) != 286:
+            raise ValueError("expected 52 flags and 234 point quadrangles")
     prefix = representatives()[case]
+    label = f"case {case}"
+    if zero_third:
+        if case != 3 or prefix != ((True, 0, 13), (False, 0, 1)):
+            raise ValueError("zero-third requires the certified case-3 prefix")
+        prefix += ((True, 26, 1),)
+        label += " with AND(26,1)"
     model = Encoding(prefix, 63)
     # Start with both answers. Add concrete counterexamples to each candidate.
-    active = set(range(52)) | {52, 286} if all_positives else {0, 26, 52, 286}
+    active = set(range(52)) if all_positives else {0, 26}
+    active.update((52, 52 + (len(rows) - 52) // 2))
     for i in sorted(active):
         model.add_row(*rows[i])
     candidates = 0
@@ -151,7 +164,7 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
             except subprocess.TimeoutExpired:
                 break
             if result.returncode == 20:
-                return f"case {case}: UNSAT on {len(active)} rows (solver result)"
+                return f"{label}: UNSAT on {len(active)} rows (solver result)"
             if result.returncode != 10:
                 raise RuntimeError(f"solver exited with {result.returncode}: {result.stderr[-500:]}")
             true = {int(v) for line in result.stdout.splitlines() if line.startswith("v ")
@@ -164,7 +177,7 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
                     with out.open("x") as stream:
                         for op, left, right in gates:
                             stream.write(f"{'AND' if op else 'OR'} {left} {right}\n")
-                return f"case {case}: 63-gate witness on all 520 rows"
+                return f"{label}: 63-gate witness on all {len(rows)} rows"
             if active.intersection(wrong):
                 raise ValueError("decoded model disagrees with an encoded row")
             # Refine both halves so false positives cannot swamp missing flags.
@@ -172,7 +185,7 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
             for i in new:
                 model.add_row(*rows[i])
                 active.add(i)
-    return f"case {case}: UNKNOWN, {len(active)} encoded rows, {candidates} decoded candidates"
+    return f"{label}: UNKNOWN, {len(active)} encoded rows, {candidates} decoded candidates"
 
 
 def main():
@@ -182,15 +195,23 @@ def main():
     parser.add_argument("--solver", default="cadical", help="path to a CaDiCaL executable")
     parser.add_argument("--all-positives", action="store_true",
                         help="start with all 52 incident pairs and two negative rows")
-    parser.add_argument("--witness", type=Path, help="write a new file only after all 520 tests pass")
+    parser.add_argument("--zero-third", action="store_true",
+                        help="in case 3 fix AND(26,1), representing 24 equivalent third gates")
+    parser.add_argument("--point-quadrangles", action="store_true",
+                        help="test this fixed prefix on flags and point quadrangles only; "
+                             "the full-set symmetry classification need not apply")
+    parser.add_argument("--witness", type=Path, help="write a new file only after every selected test passes")
     args = parser.parse_args()
+    if args.zero_third and args.case != 3:
+        parser.error("--zero-third requires --case 3")
     if args.case is None:
         for i, gates in enumerate(representatives()):
             print(i, " ".join(f"{'AND' if op else 'OR'}({a},{b})" for op, a, b in gates))
         return
     if args.seconds < 1:
         parser.error("--seconds must be positive")
-    print(search(args.case, args.seconds, args.solver, args.witness, args.all_positives))
+    print(search(args.case, args.seconds, args.solver, args.witness, args.all_positives,
+                 args.point_quadrangles, args.zero_third))
 
 
 if __name__ == "__main__":
