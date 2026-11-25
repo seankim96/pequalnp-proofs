@@ -1,0 +1,5 @@
+∀ (edge : Fin 21 → Fin 19 → Prop) (f : Set (Fin 21) → Set (Fin 19) → Prop),
+    (∀ a b c d, a ⊆ c → b ⊆ d → f a b → f c d) →
+    ((∀ a b, f a b ↔ ∃ i ∈ a, ∃ j ∈ b, edge i j) ↔
+    (∀ i j, edge i j → f {i} {j}) ∧
+    (∀ t, ({j | ∀ i ∈ ({i | ∀ j ∈ t, ¬ edge i j} : Set (Fin 21)), ¬ edge i j} : Set (Fin 19)) = t → ¬ f ({i | ∀ j ∈ t, ¬ edge i j} : Set (Fin 21)) t))

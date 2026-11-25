@@ -1,0 +1,6 @@
+assignment	budget_gates	prefix	seed_rows	seconds	verdict	rows_encoded	decoded_candidates	solver
+L-meta-2625	63	case 5: AND(0,13); OR(0,13)	52 positive + 2 negative	120	UNKNOWN	56	1	CaDiCaL 2.1.2
+L-meta-2625	63	case 5 then AND(0,17)	2 positive + 2 negative	180	UNKNOWN	28	8	CaDiCaL 2.1.2
+L-meta-2625	63	case 5 then OR(1,27)	52 positive + 2 negative	120	UNKNOWN	56	1	CaDiCaL 2.1.2
+L-meta-9800	112	unrestricted binary AND/OR earlier-wire DAG	2 positive + 2 negative	180	UNKNOWN	38	9	CaDiCaL 2.1.2
+L-meta-9800	112	unrestricted binary AND/OR earlier-wire DAG	21 positive + 19 negative (pair cover)	180	UNKNOWN	42	1	CaDiCaL 2.1.2

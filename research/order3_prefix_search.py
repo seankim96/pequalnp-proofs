@@ -69,15 +69,16 @@ def negate(literal: int | bool) -> int | bool:
 
 
 class Encoding:
-    def __init__(self, prefix: tuple[Gate, ...], size: int):
+    def __init__(self, prefix: tuple[Gate, ...], size: int, n_inputs: int = 26):
+        self.n_inputs = n_inputs
         self.prefix = prefix
         self.size = size
         self.variables = 0
         self.clauses = []
         self.gates = []
         for gate in range(len(prefix), size):
-            choices = Choices(self.fresh(), [self.fresh() for _ in range(26 + gate)],
-                              [self.fresh() for _ in range(26 + gate)])
+            choices = Choices(self.fresh(), [self.fresh() for _ in range(n_inputs + gate)],
+                              [self.fresh() for _ in range(n_inputs + gate)])
             self.gates.append(choices)
             self.clause(*choices.left)
             self.clause(*choices.right)
@@ -98,7 +99,7 @@ class Encoding:
         return result
 
     def add_row(self, row: int, answer: bool):
-        wires = [bool(row & (1 << i)) for i in range(26)]
+        wires = [bool(row & (1 << i)) for i in range(self.n_inputs)]
         for is_and, a, b in self.prefix:
             wires.append((wires[a] and wires[b]) if is_and else (wires[a] or wires[b]))
         for gate in self.gates:
@@ -129,7 +130,8 @@ class Encoding:
 
 
 def search(case: int, seconds: int, solver: str, out: Path | None, all_positives: bool = False,
-           point_quadrangles: bool = False, zero_third: bool = False) -> str:
+           point_quadrangles: bool = False, zero_third: bool = False,
+           third: Gate | None = None) -> str:
     rows = test_rows()
     if point_quadrangles:
         point_mask = (1 << 13) - 1
@@ -143,6 +145,12 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
             raise ValueError("zero-third requires the certified case-3 prefix")
         prefix += ((True, 26, 1),)
         label += " with AND(26,1)"
+    if third is not None:
+        op, a, b = third
+        if len(prefix) != 2 or not (0 <= a <= b < 28):
+            raise ValueError("third gate must read two ordered wires of the two-gate prefix")
+        prefix += (third,)
+        label += f" with {'AND' if op else 'OR'}({a},{b})"
     model = Encoding(prefix, 63)
     # Start with both answers. Add concrete counterexamples to each candidate.
     active = set(range(52)) if all_positives else {0, 26}
@@ -200,10 +208,23 @@ def main():
     parser.add_argument("--point-quadrangles", action="store_true",
                         help="test this fixed prefix on flags and point quadrangles only; "
                              "the full-set symmetry classification need not apply")
+    parser.add_argument("--third", nargs=3, metavar=("OP", "LEFT", "RIGHT"),
+                        help="fix a third binary gate (e.g. AND 0 17) after the selected prefix")
     parser.add_argument("--witness", type=Path, help="write a new file only after every selected test passes")
     args = parser.parse_args()
     if args.zero_third and args.case != 3:
         parser.error("--zero-third requires --case 3")
+    third = None
+    if args.third:
+        op, a, b = args.third
+        if args.case is None or args.zero_third or op not in ("AND","OR"):
+            parser.error("--third needs a case, AND or OR, and no other third-gate option")
+        try:
+            third = (op == "AND", int(a), int(b))
+        except ValueError:
+            parser.error("wire indices must be integers")
+        if not 0 <= third[1] <= third[2] < 28:
+            parser.error("expected 0 <= LEFT <= RIGHT < 28")
     if args.case is None:
         for i, gates in enumerate(representatives()):
             print(i, " ".join(f"{'AND' if op else 'OR'}({a},{b})" for op, a, b in gates))
@@ -211,7 +232,7 @@ def main():
     if args.seconds < 1:
         parser.error("--seconds must be positive")
     print(search(args.case, args.seconds, args.solver, args.witness, args.all_positives,
-                 args.point_quadrangles, args.zero_third))
+                 args.point_quadrangles, args.zero_third, third))
 
 
 if __name__ == "__main__":

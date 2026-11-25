@@ -1,0 +1,5 @@
+∀ e : Fin 21 → Fin 19 → Prop,
+    (∀ p q, e p q → ∃ f : Set (Fin 21) → Set (Fin 19) → Prop, (∀ (a : Set (Fin 21)) (b : Set (Fin 19)) c d, a ⊆ c → b ⊆ d → f a b → f c d) ∧
+      ∀ a b, f a b ↔ (∃ i ∈ a, ∃ j ∈ b, e i j) ∧ ¬ (a = {p} ∧ b = {q})) ∧
+    (∀ t, ({j | ∀ i ∈ ({i | ∀ j ∈ t, ¬ e i j} : Set (Fin 21)), ¬ e i j} : Set (Fin 19)) = t → ∃ f : Set (Fin 21) → Set (Fin 19) → Prop, (∀ (a : Set (Fin 21)) (b : Set (Fin 19)) c d, a ⊆ c → b ⊆ d → f a b → f c d) ∧
+      ∀ a b, f a b ↔ (∃ i ∈ a, ∃ j ∈ b, e i j) ∨ (a = ({i | ∀ j ∈ t, ¬ e i j} : Set (Fin 21)) ∧ b = t))
