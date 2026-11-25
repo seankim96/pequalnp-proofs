@@ -1,0 +1,8 @@
+assignment	budget_gates	case	constraints	seconds_budget	verdict	detail
+L-meta-2625	63	case 6: AND(0,13), OR(0,14)	binary AND/OR earlier-wire DAG; all 52 positives plus 2 negative seeds	120	UNKNOWN	CaDiCaL 2.1.2; 54 encoded rows, 0 decoded candidates
+L-meta-2625	63	case 6 then AND(1,13)	same DAG and 54 seeds	180	UNKNOWN	CaDiCaL 2.1.2; 54 encoded rows, 0 decoded candidates
+L-meta-2625	63	case 6 then OR(1,27)	same DAG and 54 seeds	300	UNKNOWN	CaDiCaL 2.1.2; 56 encoded rows, 1 rejected candidate
+L-meta-16796	9	all topological gate lists	6 inputs; binary AND/OR and unary NOT; unrestricted reuse; seed rows 0,7,11,14,17,41,54,63	180	UNKNOWN	CaDiCaL 2.1.2; 32 encoded rows, 6 rejected candidates
+L-meta-16796	8	all initial input subsets and normalized live-wire transitions	all 64 rows; AND/OR, unary copy/NOT and operand retention	60	EXCLUDED (numerical)	780 states; 0.408s; C++ replay CLOSED; sha256 fb9504342912d4126ef3220b83749bc060439abe268a5ec1215ebd15225ba2b2
+L-meta-16796	9	all initial input subsets and normalized live-wire transitions	all 64 rows; AND/OR, unary copy/NOT and operand retention	140	EXCLUDED (numerical)	10377 states; 5.901s; C++ replay CLOSED; sha256 781c517c084d76f0c2926f4d044b8b9de941064d6c770a64493f6d62d0704d84
+L-meta-16796	10	all initial input subsets and normalized live-wire transitions	all 64 rows; AND/OR, unary copy/NOT and operand retention	420	EXCLUDED (numerical)	130462 states; 82.141s; C++ replay CLOSED in 2.43s; replay budget 300s; sha256 48381f218db31d7cb959dcfbd6e4013dac492de444e848f321a96fabf37d2cfa

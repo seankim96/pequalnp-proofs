@@ -1,4 +1,4 @@
-"""Search the remaining nine-gate budget for L-meta-16116 by counterexample refinement."""
+"""Search finite six-input circuit budgets by counterexample refinement."""
 import argparse
 import subprocess
 import tempfile
@@ -9,11 +9,12 @@ from order3_prefix_search import Choices, Encoding
 
 TABLE = (3941264000 << 32) + 3937060992
 
-class NineGates(Encoding):
-    def __init__(self, monotone_only):
+class BoundedGates(Encoding):
+    def __init__(self, monotone_only, budget, table):
         super().__init__((), 0)
+        self.table = table
         self.inversions = []
-        for k in range(9):
+        for k in range(budget):
             width = 6 + k
             gate = Choices(self.fresh(), [self.fresh() for _ in range(width)],
                            [self.fresh() for _ in range(width)])
@@ -40,7 +41,7 @@ class NineGates(Encoding):
             self.clause(-inv,-v,-a)
             self.clause(-inv,v,a)
             wires.append(v)
-        self.clause(wires[-1] if TABLE >> x & 1 else -wires[-1])
+        self.clause(wires[-1] if self.table >> x & 1 else -wires[-1])
 
     def decode(self, model):
         def selected(choices):
@@ -55,14 +56,14 @@ def evaluate(gates, x):
     return w[-1]
 
 def run(args):
-    enc = NineGates(args.monotone)
+    enc = BoundedGates(args.monotone, args.gates, args.table)
     rows = {0,63,7,11,14,17,41,54}
     for x in sorted(rows):
         enc.add_test(x)
     deadline = monotonic() + args.seconds
     count = 0
     with tempfile.TemporaryDirectory() as directory:
-        cnf = Path(directory) / 'nine.cnf'
+        cnf = Path(directory) / 'bounded.cnf'
         while monotonic() < deadline:
             enc.write(cnf)
             try:
@@ -77,7 +78,7 @@ def run(args):
             model = {int(v) for line in result.stdout.splitlines() if line.startswith('v ')
                      for v in line.split()[1:] if int(v) > 0}
             gates = enc.decode(model)
-            errors = [x for x in range(64) if evaluate(gates,x) != (TABLE >> x & 1)]
+            errors = [x for x in range(64) if evaluate(gates,x) != (args.table >> x & 1)]
             count += 1
             if rows.intersection(errors):
                 raise RuntimeError('decoded candidate disagrees with an encoded row')
@@ -90,6 +91,8 @@ def run(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--gates', type=int, choices=range(1, 64), default=9)
+    parser.add_argument('--table', type=lambda value: int(value, 0), default=TABLE)
     parser.add_argument('--seconds',type=int,default=180)
     parser.add_argument('--solver',default='cadical')
     parser.add_argument('--monotone',action='store_true')
