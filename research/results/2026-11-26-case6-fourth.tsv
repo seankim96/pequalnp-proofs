@@ -1,0 +1,4 @@
+assignment	gates	first_three	fourth	mixed_tail_clauses	seed_rows	budget_seconds	solver	outcome	encoded_rows	rejected_candidates
+L-meta-2625	63	AND(0,13) OR(0,14) AND(1,13)	OR(0,28)	no	52 positives + 2 negatives	90	CaDiCaL 2.1.2	UNKNOWN	54	0
+L-meta-2625	63	AND(0,13) OR(0,14) AND(1,13)	OR(26,28)	no	2 positives + 2 negatives	120	CaDiCaL 2.1.2	UNKNOWN	32	7
+L-meta-2625	63	AND(0,13) OR(0,14) AND(1,13)	OR(27,28)	yes	2 positives + 2 negatives	90	CaDiCaL 2.1.2	UNKNOWN	40	9

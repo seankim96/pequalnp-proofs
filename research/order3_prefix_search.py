@@ -131,7 +131,8 @@ class Encoding:
 
 def search(case: int, seconds: int, solver: str, out: Path | None, all_positives: bool = False,
            point_quadrangles: bool = False, zero_third: bool = False,
-           third: Gate | None = None) -> str:
+           third: Gate | None = None, fourth: Gate | None = None,
+           prune_tail: bool = True) -> str:
     rows = test_rows()
     if point_quadrangles:
         point_mask = (1 << 13) - 1
@@ -151,7 +152,18 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
             raise ValueError("third gate must read two ordered wires of the two-gate prefix")
         prefix += (third,)
         label += f" with {'AND' if op else 'OR'}({a},{b})"
+    if fourth is not None:
+        op, a, b = fourth
+        if len(prefix) != 3 or not 0 <= a <= b < 29:
+            raise ValueError("fourth gate needs a three-gate prefix and ordered earlier wires")
+        prefix += (fourth,)
+        label += f" then {'AND' if op else 'OR'}({a},{b})"
     model = Encoding(prefix, 63)
+    if (prune_tail and not point_quadrangles and fourth is not None and
+            prefix[:3] == ((True, 0, 13), (False, 0, 14), (True, 1, 13))):
+        # PlaneFlagAndTail and PlaneFlagOrTail exclude each homogeneous suffix.
+        model.clause(*(g.is_and for g in model.gates))
+        model.clause(*(-g.is_and for g in model.gates))
     # Start with both answers. Add concrete counterexamples to each candidate.
     active = set(range(52)) if all_positives else {0, 26}
     active.update((52, 52 + (len(rows) - 52) // 2))
@@ -211,6 +223,10 @@ def main():
     parser.add_argument("--third", nargs=3, metavar=("OP", "LEFT", "RIGHT"),
                         help="fix a third binary gate (e.g. AND 0 17) after the selected prefix")
     parser.add_argument("--witness", type=Path, help="write a new file only after every selected test passes")
+    parser.add_argument("--fourth", nargs=3, metavar=("OP", "LEFT", "RIGHT"),
+                        help="fix a fourth binary gate after the third")
+    parser.add_argument("--no-tail-pruning", action="store_true",
+                        help="omit the two certified gate-type clauses when replaying earlier runs")
     args = parser.parse_args()
     if args.zero_third and args.case != 3:
         parser.error("--zero-third requires --case 3")
@@ -225,6 +241,17 @@ def main():
             parser.error("wire indices must be integers")
         if not 0 <= third[1] <= third[2] < 28:
             parser.error("expected 0 <= LEFT <= RIGHT < 28")
+    fourth = None
+    if args.fourth:
+        op, a, b = args.fourth
+        if not (args.third or args.zero_third) or op not in ("AND", "OR"):
+            parser.error("--fourth requires a fixed third gate and AND or OR")
+        try:
+            fourth = (op == "AND", int(a), int(b))
+        except ValueError:
+            parser.error("fourth-gate wire indices must be integers")
+        if not 0 <= fourth[1] <= fourth[2] < 29:
+            parser.error("expected 0 <= LEFT <= RIGHT < 29")
     if args.case is None:
         for i, gates in enumerate(representatives()):
             print(i, " ".join(f"{'AND' if op else 'OR'}({a},{b})" for op, a, b in gates))
@@ -232,7 +259,7 @@ def main():
     if args.seconds < 1:
         parser.error("--seconds must be positive")
     print(search(args.case, args.seconds, args.solver, args.witness, args.all_positives,
-                 args.point_quadrangles, args.zero_third, third))
+                 args.point_quadrangles, args.zero_third, third, fourth, not args.no_tail_pruning))
 
 
 if __name__ == "__main__":
