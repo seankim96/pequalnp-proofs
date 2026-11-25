@@ -1,4 +1,4 @@
-"""Classify the third gate after AND(0,13), OR(0,13) on the 520 certified rows.
+"""Classify third gates on the 520 certified rows for a fixed two-gate prefix.
 
 The circuit model permits reading any previous wire repeatedly. Raw wire
 renamings preserve both gates, and equal tested columns allow the same suffix.
@@ -39,18 +39,22 @@ def move(r,p):
         r ^= bit
     return result
 
-def classify():
+def classify(case=5):
     rows = test_rows()
-    assert representatives()[5] == ((True,0,13),(False,0,13))
+    pin, second = representatives()[case]
+    if pin != (True,0,13):
+        raise ValueError("the first gate must be AND(0,13)")
+    is_and, a, b = second
     raw = [sum(((r >> i)&1) << k for k,(r,_) in enumerate(rows)) for i in range(26)]
-    cols = raw+[raw[0]&raw[13],raw[0]|raw[13]]
+    cols = raw+[raw[0]&raw[13]]
+    cols.append(cols[a] & cols[b] if is_and else cols[a] | cols[b])
     old = set(cols)
     gates = [(op,i,j) for op in ('AND','OR') for i,j in combinations(range(28),2)]
     def sig(g):
         op,i,j = g
         return cols[i]&cols[j] if op == 'AND' else cols[i]|cols[j]
     fresh = {g:sig(g) for g in gates if sig(g) not in old}
-    group = list(stabilizer())
+    group = [p for p in stabilizer() if {p[a],p[b]} == {a,b}]
     labels = dict(rows)
     for p in group:
         assert len(set(p)) == 28 and {p[0],p[13]} == {0,13}
@@ -89,4 +93,7 @@ def classify():
     return survivors
 
 if __name__ == '__main__':
-    classify()
+    import argparse
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--case", type=int, default=5)
+    classify(parser.parse_args().case)
