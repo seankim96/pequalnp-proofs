@@ -22,12 +22,16 @@ def main():
         return signal & ~inherited & positives_mask
 
     counts = Counter()
+    reading_new = Counter()
     for left in cols:
         for right in cols:
             extended = (*cols, left | right)
-            for a in extended:
-                for b in extended:
-                    counts[exception_mask(a & b)] += 1
+            for i, a in enumerate(extended):
+                for j, b in enumerate(extended):
+                    mask = exception_mask(a & b)
+                    counts[mask] += 1
+                    if i == 31 or j == 31:
+                        reading_new[mask.bit_count()] += 1
     assert sum(counts.values()) == 31**2 * 32**2
     assert max(mask.bit_count() for mask in counts) <= 2
 
@@ -57,6 +61,8 @@ def main():
         distribution[exc.bit_count()] += n
     print("ordered cases", sum(counts.values()), "distinct masks", len(counts))
     print("by exceptional positive count", sorted(distribution.items()))
+    assert sum(reading_new.values()) == 31**2 * 63
+    print("reading the sixth OR", sorted(reading_new.items()))
     print("minimum surviving negatives", worst, "one worst mask", hex(worst_mask))
     # Replay the worst mask independently without endpoint buckets.
     retained = [p for k, p in enumerate(positives) if not worst_mask >> k & 1]
