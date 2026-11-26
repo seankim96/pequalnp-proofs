@@ -205,15 +205,8 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
         if len(prefix) >= 4 and prefix[:2] == ((False, 0, 1), (False, 3, 9)):
             # The 19 flags at negative row 159 already separate the 28 base wires.
             min_or = 18 - sum(not gate[0] for gate in prefix[2:])
-            # PlaneCase35GuardedPair allows OR, a repeated input, or an AND
-            # whose output is false on all positives outside the first two lines.
-            def guarded(size):
-                is_and, left, right = prefix[size - 1]
-                return (not is_and or left == right or
-                        all(not evaluate(prefix[:size], row) for row, _ in rows[8:52]))
-
-            if guarded(3) and guarded(4):
-                model.require_at_least(flags, 9 - int(fifth is not None and fifth[0]))
+            # PlaneCase35UniformFourth covers every choice of gates three and four.
+            model.require_at_least(flags, 9 - int(fifth is not None and fifth[0]))
         model.require_at_least([-flag for flag in flags], min_or)
     # Start with both answers. Add concrete counterexamples to each candidate.
     active = set(range(52)) if all_positives else {0, 26}
