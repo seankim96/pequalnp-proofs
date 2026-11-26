@@ -45,3 +45,36 @@ Official pinned checker: ACCEPTED (check), 2,507 constants, propext, Quot.sound,
 A third CaDiCaL run exercised the new unrestricted-ninth cut. After the six fixed gates, set gates 7–9 to OR(0,2), OR(15,25), AND(32,33). Gate 9 reads both prior outputs and accepts positives 8, 48 and 49 and 48 of the negatives. Of 63 total gates, 54 are free, with at least 9 AND and 17 OR. There were 17,172 variables and 553,234 initial clauses on the same 56 seed rows. With a 90-second budget the actual verdict was UNKNOWN, with zero decoded candidates. The ninth-gate cut applies to all ninth-gate operands for the two certified sixth-gate orders.
 
 The general transfer theorem PlaneCase35FourChainTransfer (1,722 constants, official ACCEPTED in check mode) is also verified. Across any number of input atoms satisfying the pair condition, each inclusion chain of nontrivial DNF products can cost at most one exceptional positive. Four chains therefore cost at most four shared exceptions. The fourth-gate shape replay is `python research/order3_case35_four_gate_chains.py`. It verifies there are 9,120 shapes with a four-chain cover and 96 remaining shapes.
+
+## Four free gates: independently replayable numerical evidence
+
+Run `python research/order3_case35_four_gate_chains.py`. It checks each intermediate absorbed DNF on all 256 assignments of eight formal operands and computes a chain cover of its nonsingleton products. Every chain is checked by inclusion, and an antichain of the same cardinality independently certifies minimality. Fresh formal operands can later denote the same physical wire. Operators and ordered input selections distinguish shapes.
+
+| Minimum chain count | 0 | 1 | 2 | 3 | 4 | 5 | 6 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Four-gate wiring shapes | 1,509 | 3,408 | 3,042 | 700 | 461 | 48 | 48 |
+
+Of 9,216 shapes, 9,120 have at most four chains. The other 96 reduce, after renaming atoms, to the pair products on a four-cycle plus an independent edge (24), a complete bipartite graph K(2,3) (48), or K(2,3) with one edge removed (24). On the actual 32 fixed wires, comparable pairs copy one operand on every test. Each incomparable pair is active at at most one high positive. Enumerating the physical choices gives 18 four-flag rectangles and 792 possible five-flag omission sets from a rectangle and an extra edge. The 180 five-flag sets for K(2,3) are included. For all 792, the higher-endpoint certificate leaves at least 277 negative rows. Counts refer to syntactic wiring shapes under this encoding. This is a numerical reduction for gate ten. The shape-to-circuit application and the 792 five-flag certificates still need Lean proofs.
+
+A broader five-flag route is also viable numerically. Run `python research/order3_case35_five_omissions.py`. It derives a deterministic endpoint priority using integer weights and checks every one of the 1,712,304 five-high-flag masks. At least 259 negatives survive, including for the worst mask (physical flags 8, 10, 11, 38 and 39). This is a numerical test of the five-flag extension. It uses a different endpoint orientation from the 277-row result on the 792 relevant masks.
+
+The same replay reconstructs 242 classes of negatives after excluding low flags 0–3 and the six high flags 8, 10, 11, 13, 14, 15. The classes partition all 468 negatives. Each of the 392 within-class unordered pairs has no admissible baseline witness. Consequently any family with witnesses for all its distinct pairs can take at most one member of each class. Extending the four-omission premise to *every* six-high-flag set with 257 surviving rows is mathematically impossible. This obstruction is specific to that premise, and does not supply a 63-gate circuit.
+
+For this particular six-high-flag mask the numerical maximum is exactly 242. The replay checks an explicit 242-element set of negatives against all bad pairs, giving the matching example for the 242-class upper bound.
+
+For the K(2,3) subcase, a smaller formalization is available. For each fixed pair of left wires, every right wire charges at most two flags. All right wires that charge two can be hit by the same set of at most two anchors: among 528 unordered pairs of left wires (repetition allowed), 368 need zero anchors, 124 need one, and 36 need two. Three pairwise disjoint two-flag charges would each need a distinct anchor. This reduces the physical no-six-charges check to a 32-by-32-by-32 table and a pigeonhole argument. The script independently checks those 528 anchor bounds.
+
+Next formal step for the unrestricted tenth gate: prove the four-gate DNF normalization and that each shape either comes with four inclusion chains or is one of the three hard pair-product graphs. In the latter branch certify the 18 physical rectangles and their 792 five-flag endpoint bounds. A certificate for arbitrary six omissions cannot discharge this step, by the explicit upper bound above.
+
+A final upstream title search returned three PRs mentioning L-meta-2625. #6074 and #8889 were closed without merging, each proposing an R_meta reduction. #7659 merged the finite wiring-search reduction R_meta_2625_487. None is an unrestricted 63-gate decision.
+
+For example, when gates 7–9 are all AND, there is still no OR after gate four in the nine-gate prefix. The new suffix AND bound and the earlier OR bound give at least 9 + 9 + 19 = 37 gates for every such instance. This is a restricted total-gate lower bound.
+
+## Further checker results
+
+- PlaneCase35FourChainTransfer: ACCEPTED (check), 1,722 kernel constants, propext, Quot.sound, Classical.choice. [Single-file comparison](https://github.com/seankim96/pequalnp-proofs/compare/881a37ee4442bc7ba0ba4fe3d086a8ae0cfed2a9...3f0f3426f5169649f016eae8e2ccb7e26286b877).
+- PlaneCase35SixOmissionBarrier: ACCEPTED (check), 1,897 kernel constants, propext, Quot.sound, Classical.choice. [Single-file comparison](https://github.com/seankim96/pequalnp-proofs/compare/881a37ee4442bc7ba0ba4fe3d086a8ae0cfed2a9...4eae94dd3e4d7785555191814758cdf6f28e7411).
+
+The chain-transfer theorem works for any number of input atoms satisfying the stated pair condition. Each inclusion chain of DNF terms can spoil transfer at at most one high positive. Four chains therefore share an omission set of size at most four. The six-omission barrier proves the upper bound of 242 on witness-complete negative families for the listed mask, on the actual baseline wire evaluations. The explicit 242-element lower example and the four-gate wiring census are checked by the independent Python replays.
+
+The final six-omission verifier uses six five-bit lookup tables for the 30 baseline wires. The kernel checks the tables and their correspondence to the real signals. Earlier direct encodings exceeded the available memory and yielded CHECKER FAULT. The accepted version was also independently compiled against the expanded statement. All six accepted module manifests list exactly one research source and match all 87 pinned upstream definition source digests.
