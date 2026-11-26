@@ -21,3 +21,18 @@ Compile research/plane_raw_deletion_scan.cpp with a C++20 compiler and -O3. Pass
 | 7 | 133,784,560 | 228 | 45,864 | 257 |
 
 For at most 211 failed pairs, discard one endpoint per pair. For each of the 45,864 exceptional seven-flag sets the replay checked every submask, reconfirmed the pair count, then retained the larger of the families obtained by removing all low or all high endpoints. The worst loss on these exceptional sets was only 141 endpoints. The 257 bound over all seven-flag sets is conservative. By extending smaller deletions to seven, the guarantee covers every size up to seven. Applying the already checked PlaneSparseAndPrefix lemma gives a numerical certificate for at least nine ANDs strictly after any prefix of the raw inputs in which every AND is true only on a common set of at most seven positive tests. There is no bound on the number of intervening OR gates. These constraints on the ANDs are essential.
+
+## Symmetry compression for the remaining numerical premise
+
+The three checked-in stage-0 wire permutations act on all 52 flags and all 468 negative tests. The orbit replay verified they are permutations of both lists, that the negatives form one orbit, and that every computed witness mask transforms into its predicted class. The 109,278 unordered negative pairs form 27 orbits and their exact masks form 25 orbits. Only six witness-mask orbits have size of mask at most five. Listed as (mask representative, mask orbit size, unordered pairs, multiplicity per mask, partners of negative row 0):
+
+- 0x1, 52, 936, 18, 4
+- 0x21, 702, 2808, 4, 12
+- 0x2102, 468, 1404, 3, 6
+- 0x65, 1404, 2808, 2, 12
+- 0x161, 5616, 5616, 1, 24
+- 0x24c1, 5616, 5616, 1, 24
+
+In each orbit, 468 times the last count equals twice its unordered pair total. These are direct Python checks. They suggest a smaller way to formalize the multiplicity premise by generating the mask orbits and checking the 467 partners of one negative row. Reproduce with python research/plane_raw_pair_orbits.py.
+
+SAT probe: fixed sixth AND code 81 = AND(2,19), 63 total gates, 57 remaining slots, no additional gate-count pruning. Initial rows were all 52 positives plus negative indices 0 and 234. CaDiCaL 2.1.2 used a 60-second wall-clock budget, 16,131 variables, 560,364 clauses, 54 encoded rows, zero decoded candidates. Verdict UNKNOWN (timeout).
