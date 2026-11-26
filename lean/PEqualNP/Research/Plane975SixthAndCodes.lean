@@ -9,7 +9,11 @@ def codes := (List.range 961).filter fun k => codeMask k &&& omittedFlags == cod
 private theorem inputWire (i : Fin 31) : wire base i.val = input i.val := by
   unfold wire base
   rw [List.getD_eq_getElem?_getD]
-  simp [List.getElem?_append_left, i.isLt]
+  have h : i.val < (List.ofFn (fun j : Fin 31 => input j.val)).length := by
+    rw [List.length_ofFn]
+    exact i.isLt
+  rw [List.getElem?_append_left h, List.getElem?_eq_getElem h, List.getElem_ofFn]
+  rfl
 
 private theorem col0 : ∀ p : Fin 52, columns[0]!.testBit p.val = (pos p.val).testBit 0 := by decide +kernel
 private theorem col1 : ∀ p : Fin 52, columns[1]!.testBit p.val = (pos p.val).testBit 1 := by decide +kernel

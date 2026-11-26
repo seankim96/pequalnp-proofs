@@ -15,3 +15,9 @@ PlaneSparseAndPrefix uses a single flag set shared by an entire intermediate gat
 For each pair store the mask of all positives it covers. Deleting a flag set S destroys exactly the pairs whose witness mask is a subset of S. Removing all higher endpoints or all lower endpoints of destroyed pairs gives two independent families. Keep the larger. The script enumerates deletion sets by size and directly checks the two endpoint sets on a worst example per size. For all 270,725 four-flag sets the worst smaller endpoint count is 144 in code 888 and 162 in code 975. Thus at least 324 and 306 negatives remain respectively. These are finite-computation results, not a closed Lean certificate for all flag sets.
 
 Source and statement files record the new proofs. Use research/order3_sparse_and_prefix.py for the numerical enumeration.
+
+## Checked general theorem and five-flag results
+
+PlaneSparseAndPrefix: ACCEPTED (check), exit 0 on pinned Lean 4.36.0. The checker rechecked 1,706 constants and reported only propext, Quot.sound and Classical.choice. All three research source hashes and 86 definitions hashes matched. The first draft had a reserved identifier and a let-binder elaboration error; both were corrected before this verdict.
+
+The numerical scan ran all 2,598,960 five-flag sets independently at each prefix. The maximum number excluded by choosing the better of the high and low endpoint sets was 162 at code 888 (flags 2,3,5,6,7), and 184 at code 975 (flags 3,10,11,22,23). Thus 306 and 284 negatives respectively survive in the worst cases. Every smaller size 1–4 was separately exhausted. The scalar replay independently recomputed both endpoint sets on each worst example. These finite premises were checked by Python, not by the general Lean theorem.
