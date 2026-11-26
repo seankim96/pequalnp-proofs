@@ -228,8 +228,9 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
                     and {fifth, sixth} == {(True, 13, 26), (True, 13, 27)}):
                 # The uniform seventh- and eighth-gate bounds cover these two orders.
                 min_and = 9 - sum(g[0] for g in prefix[8:])
-                if ninth is not None and {seventh, eighth} == {(True, 0, 17), (True, 0, 23)}:
-                    min_and = 9 - sum(g[0] for g in prefix[9:])  # PlaneCase35NinthTraceBound
+                if ninth is not None:
+                    # PlaneCase35ThreeFreeGateBound allows all gate types and all dependencies at 7–9.
+                    min_and = 9 - sum(g[0] for g in prefix[9:])
             if (prefix[2:4] == ((True, 15, 27), (True, 17, 26)) and len(prefix) >= 7):
                 # PlaneCase35GuardedPoolTraceBound allows any number of guarded wires
                 # before the last two free choices. Check only its silent-wire alternative.
