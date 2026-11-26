@@ -1,0 +1,4 @@
+let G := PEqualNP.EdgeOwnership.edgeGraph 11 [(0,9),(0,10),(1,4),(1,8),(2,5),(2,10),(3,6),(3,7),(4,8),(4,10),(5,8),(5,9),(6,7),(6,10),(7,9),(8,9)]
+    ∀ K : Finset (Fin 11), ∃ J T : Finset (Fin 11), J.card ≤ K.card ∧
+      (∀ a b, G.Adj a b → (a ∈ K ∨ b ∈ K) → a ∈ J ∨ b ∈ J) ∧
+      J ⊆ T ∧ G.IsVertexCover (↑T) ∧ T.card ≤ (if ({0,1,2} : Finset (Fin 11)) ⊆ K then 8 else 7)

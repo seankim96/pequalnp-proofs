@@ -1,0 +1,6 @@
+let G := PEqualNP.EdgeOwnership.edgeGraph 11 [(0,9),(0,10),(1,4),(1,8),(2,5),(2,10),(3,6),(3,7),(4,8),(4,10),(5,8),(5,9),(6,7),(6,10),(7,9),(8,9)]
+    ∀ (U : Finset (Sym2 (Fin 11))) (b : Nat),
+      (∃ K X : Finset (Fin 11), PEqualNP.MetaComplexity.NestedCover.IsMinCover (G.deleteEdges ↑U) K ∧
+        G.IsVertexCover (↑(K ∪ X)) ∧ X.card ≤ b) ↔
+      (∃ K : Finset (Fin 11), PEqualNP.MetaComplexity.NestedCover.IsMinCover (G.deleteEdges ↑U) K ∧
+        (if ({0,1,2} : Finset (Fin 11)) ⊆ K then 8 else 7) ≤ K.card + b)
