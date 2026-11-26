@@ -27,3 +27,9 @@ Each fixes the first six gates above and four further gates, leaving 53 free bin
 | AND(2,14), AND(4,14), AND(10,14), AND(10,23) | 9 / 19 | 17,013 / 543,202 | 120 | UNKNOWN, 56 rows, 0 decoded candidates |
 
 Reproduce with `research/order3_prefix_search.py --case 35 --third AND 15 27 --fourth AND 17 26 --fifth AND 13 26 --sixth AND 13 27`, adding the four gates via --seventh through --tenth, and `--all-positives --negative-seed 1 --negative-seed 2 --operator-bounds --seconds SECONDS --solver /path/to/pinned/cadical`. Five dispatch checks covered the cut, both orders of the fixed gate pair, and a mixed suffix. Neither run proves UNSAT.
+
+## Every negative pair has a certified local witness
+
+PlaneCase35LocalPairCertificate passed the upstream checker (2,009 kernel constants, propext, Quot.sound and Classical.choice). The theorem connects the numeric mask to the actual 30 baseline wire evaluations. Each of 109,278 pairs i < j either admits five distinct valid high-flag witnesses, or has a label of j all of whose set bits denote valid witnesses. A label may be empty, so the second alternative needs the endpoint membership argument before it can be used to infer separation. Independent replay gave 90,764 five-witness pairs and 18,514 remaining pairs. It decoded all 213,053 empty-through-four-flag bucket positions and all 3,812 endpoint memberships. Run `python research/order3_case35_endpoint_replay.py`.
+
+The standalone source, exact expanded statement and verifier manifest were checked for each of the three lemmas. Each manifest listed one research module and the same 87 upstream definition source digests. [One-file local-pair comparison](https://github.com/seankim96/pequalnp-proofs/compare/881a37ee4442bc7ba0ba4fe3d086a8ae0cfed2a9...b4401821bfcfe3457848aacea6cb4f1c21b63284).
