@@ -50,3 +50,9 @@ For a route to a concrete multiplicity proof, one can avoid proving all orbit ca
 ## Kernel checks on the anchored reduction
 
 PlaneRawAnchorCensus: ACCEPTED (check), 1,665 constants, only propext. PlaneRawNegativeOrbit: ACCEPTED (check), 1,742 constants, propext and Quot.sound. Each had one research source and 86 definition hashes verified against disk. The initial single-batch row-orbit kernel replay ended without verdict (exit 137); dividing the 468 edge checks into blocks of eight allowed the same statement to pass. The constructive row-orbit theorem and the anchor census are now kernel checked, not just compiled.
+
+## Fourth residual family and a bounded full-circuit search
+
+Plane975Family4Codes: ACCEPTED (check), pinned Lean 4.36.0, 2,012 kernel constants. All four research files and 86 definition hashes matched. Mask 0xf000080f covers 14 disjoint ordered sixth AND codes: 106, 113, 268, 292, 330, 356, 406, 412, 416, 476, 623, 628, 630, 640. The same nine-AND suffix lower bound now covers 925/961 choices; 36 remain. Next residual group: 0x88f8000008000, 12 codes.
+
+Code 106 fixes the sixth gate to AND(3,13) after the stated five-gate prefix. CaDiCaL 2.1.2, 63 total binary monotone gates, 57 free suffix slots, all 52 positives and negative rows 52 and 286 (indices in the combined zero-based test table). The initial CNF had 16,131 variables and 560,364 clauses. With a 45-second search budget and zero returned models, the result was UNKNOWN (timeout). No 63-gate branch was excluded by this SAT run.
