@@ -1,0 +1,18 @@
+let positive : Array Nat := #[
+    8193, 8194, 8200, 8704, 16386, 16388, 16400, 17408, 32772, 32776, 32800, 34816, 65544, 65552,
+    65600, 69632, 131073, 131088, 131104, 131200, 262146, 262176, 262208, 262400, 524292, 524352, 524416, 524800,
+    1048584, 1048704, 1048832, 1049600, 2097168, 2097408, 2097664, 2099200, 4194336, 4194816, 4195328, 4198400, 8388609, 8388672,
+    8389632, 8390656, 16777218, 16777344, 16779264, 16781312, 33554433, 33554436, 33554688, 33558528]
+
+let wire (x : Nat) (w : Fin 31) : Bool :=
+  if w.val < 26 then x.testBit w.val
+  else if w.val = 26 then x.testBit 0 && x.testBit 13
+  else if w.val = 27 then x.testBit 0 || x.testBit 14
+  else if w.val = 28 then x.testBit 1 && x.testBit 13
+  else if w.val = 29 then x.testBit 1 && x.testBit 18
+  else x.testBit 2 && x.testBit 15
+let product (a : Fin 31) (rest : List (Fin 31)) (x : Nat) :=
+  wire x a && rest.all (wire x)
+∀ (a : Fin 31) (rest : List (Fin 31)),
+    (∃ w : Fin 31, ∀ x : Nat, product a rest x = wire x w) ∨
+    ∃ e : Fin 52, ∀ p : Fin 52, product a rest positive[p.val]! = true → p = e
