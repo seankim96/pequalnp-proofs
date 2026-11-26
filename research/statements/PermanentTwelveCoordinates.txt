@@ -1,0 +1,6 @@
+∀ (L : Submodule ℂ (Fin 4 × Fin 4 → ℂ)) (a b c d : Fin 16),
+    a < b → b < c → c < d →
+    (∀ t ∈ L, ∀ u ∈ ([a,b,c,d] : List (Fin 16)), t (finProdFinEquiv.symm u) = 0) →
+    (∀ t ∈ L, Matrix.permanent (Matrix.of fun (i j : Fin 4) =>
+      (if i = j then (2 : ℂ) else 1) + t (i,j)) = 65) →
+    Module.finrank ℂ L ≤ 5

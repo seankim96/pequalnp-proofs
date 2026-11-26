@@ -1,0 +1,5 @@
+∀ L : Submodule ℂ (Fin 4 × Fin 4 → ℂ),
+    (∀ t ∈ L, ∀ j : Fin 4, t (3, j) = 0) →
+    (∀ t ∈ L, Matrix.permanent (Matrix.of fun (i j : Fin 4) =>
+      (if i = j then (2 : ℂ) else 1) + t (i, j)) = 65) →
+    Module.finrank ℂ L ≤ 5
