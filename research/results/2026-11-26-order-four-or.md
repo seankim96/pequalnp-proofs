@@ -22,8 +22,23 @@ Allow a shared network of binary OR gates to build variable subsets, take k ANDs
 
 ## Replay and check scope
 
-Use the pinned leanprover/lean4:v4.36.0 and the repository's tools/check-lean.mjs in check mode, with the corresponding research/statements/<module>.txt. Overlay the research sources on upstream b9979b6899c4c4b4c0ceaaf6155681062bc9e2bd for the published circuit-to-union simulation L_meta_8265 (source SHA-256 99bbd792fa0a41594434de72d75e462db1470379c646389ffce8d09294a097dd). The finite search budget was exhaustive over 2^21 point masks, 861^2 ordered pairs of raw ORs, and the one specified triple. The C++ replay also reconstructs the seven private-edge samples, checking coverage of all 42 omitted vertices and the empty intersection of the seven samples.
+The first two local checks below used verifier checkout d71cf1a8edc6824f3858422eead4fa676557b14c. Its checker, Lean toolchain and dependency lock match upstream b9979b68; the latter adds one unrelated definitions module, BranchingProgram. Use the pinned leanprover/lean4:v4.36.0 and the repository's tools/check-lean.mjs in check mode, with the corresponding research/statements/<module>.txt. Overlay the research sources on upstream b9979b6899c4c4b4c0ceaaf6155681062bc9e2bd for the published circuit-to-union simulation L_meta_8265 (source SHA-256 99bbd792fa0a41594434de72d75e462db1470379c646389ffce8d09294a097dd). The finite search budget was exhaustive over 2^21 point masks, 861^2 ordered pairs of raw ORs, and the one specified triple. The C++ replay also reconstructs the seven private-edge samples, checking coverage of all 42 omitted vertices and the empty intersection of the seven samples.
 
 PlaneFourSharedStars: ACCEPTED (check) for the restricted shared-OR/AND/final-OR model, 1,797 kernel constants. The research module hash and all 86 definition-module hashes match the local checked sources. This is a local research theorem with its own exact statement. The desk's unrestricted 104-OR statement remains unresolved in this run.
 
 PlaneFourFirstJoin: ACCEPTED (check), 2,093 kernel constants. The manifest covers both the base counting proof in PlaneFourCoverCount and the seven-cover first-instruction refinement. All two research hashes and 86 definition hashes match. The exact checked implication says that a single union program that works on every vertex cover must contain at least 34 instructions.
+
+On the current upstream checkout b9979b6899c4c4b4c0ceaaf6155681062bc9e2bd, PlaneFourOrReplay: ACCEPTED (check), 2,190 kernel constants. This is the circuit-level statement: every fan-in-at-most-two monotone circuit computing the specified incidence function has at least 34 OR gates, with no bypass-irredundancy assumption. The three research-source hashes and all 87 definitions hashes were verified against the saved sources and the exact upstream tree. To fit the local verifier, the replay uses L_meta_8265's published simulation proof with narrower imports and a local namespace. After normalizing the namespace and dropping an unused proof of True, its simulation proof text matches upstream byte-for-byte. A direct-import version built successfully but its verifier exited 137 without a verdict. The accepted replay supersedes that attempt.
+
+For the next mathematical step, the exhaustive raw-OR census isolates a concrete candidate: on a common eight-vertex independent baseline, fixing its eight input bits to true turns the entire function into OR of the remaining 34 inputs. Both chosen raw ORs become constant true. Translating that observation into a formal gate-elimination or accounting lemma could give a 35-OR bound for circuits with two such raw OR gates. The census alone does not prove this circuit claim.
+
+To reproduce the circuit-level check after overlaying the saved research files on the indicated upstream revision, run from the repository root:
+
+```sh
+node tools/check-lean.mjs lean/PEqualNP/Research/PlaneFourOrReplay.lean research/statements/PlaneFourOrReplay.txt check
+node tools/check-lean.mjs lean/PEqualNP/Research/PlaneFourSharedStars.lean research/statements/PlaneFourSharedStars.txt check
+```
+
+The same PlaneFourSharedStars statement was then replayed on b9979b68: ACCEPTED (check), 1,852 kernel constants. Its one research hash and all 87 definitions hashes matched. The published results require only the standard propext, Quot.sound and Classical.choice axioms.
+
+The standard prove lease was issued at 12:25 UTC and renewed throughout. At 13:12 UTC the desk confirmed release as missing_lemma (HTTP 200). The structural step for unrestricted alternating circuits is still missing. There were three live reductions and the lease had reductions_open=false, so there is no upstream submission or PR for this run.
