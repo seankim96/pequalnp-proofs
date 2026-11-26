@@ -91,6 +91,22 @@ class Encoding:
         if not any(v is True for v in values):
             self.clauses.append(tuple(v for v in values if v is not False))
 
+    def require_at_least(self, literals: list[int], minimum: int):
+        """Force a threshold by witnessing enough true literals in successive prefixes."""
+        if not 0 <= minimum <= len(literals):
+            raise ValueError("threshold out of range")
+        reached = [True] + [False] * minimum
+        for literal in literals:
+            next_row = [True]
+            for count in range(1, minimum + 1):
+                witness = self.fresh()
+                # Either the previous prefix suffices or this literal extends it.
+                self.clause(-witness, reached[count], literal)
+                self.clause(-witness, reached[count], reached[count - 1])
+                next_row.append(witness)
+            reached = next_row
+        self.clause(reached[minimum])
+
     def operand(self, selectors, wires) -> int:
         result = self.fresh()
         for select, incoming in zip(selectors, wires, strict=True):
@@ -132,7 +148,7 @@ class Encoding:
 def search(case: int, seconds: int, solver: str, out: Path | None, all_positives: bool = False,
            point_quadrangles: bool = False, zero_third: bool = False,
            third: Gate | None = None, fourth: Gate | None = None,
-           prune_tail: bool = True) -> str:
+           prune_tail: bool = True, operator_bounds: bool = False) -> str:
     rows = test_rows()
     if point_quadrangles:
         point_mask = (1 << 13) - 1
@@ -164,6 +180,16 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
         # PlaneFlagAndTail and PlaneFlagOrTail exclude each homogeneous suffix.
         model.clause(*(g.is_and for g in model.gates))
         model.clause(*(-g.is_and for g in model.gates))
+    if operator_bounds:
+        if point_quadrangles:
+            raise ValueError("operator bounds require the full 520-row problem")
+        flags = [gate.is_and for gate in model.gates]
+        min_or = 18 - sum(not gate[0] for gate in prefix)
+        if len(prefix) == 4 and prefix[:3] == ((True, 0, 13), (False, 0, 14), (True, 1, 13)):
+            model.require_at_least(flags, 2)
+            # The five certified negative-row samples cover every fourth gate.
+            min_or = 18
+        model.require_at_least([-flag for flag in flags], min_or)
     # Start with both answers. Add concrete counterexamples to each candidate.
     active = set(range(52)) if all_positives else {0, 26}
     active.update((52, 52 + (len(rows) - 52) // 2))
@@ -227,7 +253,11 @@ def main():
                         help="fix a fourth binary gate after the third")
     parser.add_argument("--no-tail-pruning", action="store_true",
                         help="omit the two certified gate-type clauses when replaying earlier runs")
+    parser.add_argument("--operator-bounds", action="store_true",
+                        help="apply certified full-row lower bounds on AND and OR counts")
     args = parser.parse_args()
+    if args.operator_bounds and args.point_quadrangles:
+        parser.error("--operator-bounds requires the full row set")
     if args.zero_third and args.case != 3:
         parser.error("--zero-third requires --case 3")
     third = None
@@ -259,7 +289,7 @@ def main():
     if args.seconds < 1:
         parser.error("--seconds must be positive")
     print(search(args.case, args.seconds, args.solver, args.witness, args.all_positives,
-                 args.point_quadrangles, args.zero_third, third, fourth, not args.no_tail_pruning))
+                 args.point_quadrangles, args.zero_third, third, fourth, not args.no_tail_pruning, args.operator_bounds))
 
 
 if __name__ == "__main__":

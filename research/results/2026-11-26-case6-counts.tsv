@@ -1,0 +1,4 @@
+assignment	gates	case	fourth_code	seed_rows	tail_constraints	seconds_budget	solver	verdict	encoded_rows	rejected_candidates
+L-meta-2625	63	6; AND(0,13) OR(0,14) AND(1,13) OR(2,28)	86	52 positive + 2 negative	>=1 AND and >=1 OR	120	CaDiCaL 2.1.2	UNKNOWN	54	0
+L-meta-2625	63	6; AND(0,13) OR(0,14) AND(1,13) OR(2,28)	86	2 positive + 2 negative	>=2 AND and >=18 OR	180	CaDiCaL 2.1.2	UNKNOWN	36	8
+L-meta-2625	63	6; AND(0,13) OR(0,14) AND(1,13) OR(2,27)	85	52 positive + 2 negative	>=2 AND and >=18 OR	90	CaDiCaL 2.1.2	UNKNOWN	54	0
