@@ -192,7 +192,10 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
                 # PlaneMaskAndCount covers columns active only on these flag rows.
                 positive_mask = sum(1 << i for i, (row, positive) in enumerate(rows)
                                     if positive and evaluate(prefix, row))
-                if positive_mask & ~0x10100000100F1:
+                left, right = prefix[3][1:]
+                repeats_wire = left == right or {left, right} in ({1, 13}, {1, 28}, {13, 28})
+                if (positive_mask & ~0x10100000100F1 and positive_mask & ~0x10001010121F
+                        and not repeats_wire):
                     min_and = 8
             model.require_at_least(flags, min_and)
             # The five certified negative-row samples cover every fourth gate.
