@@ -48,7 +48,7 @@ def test_rows() -> list[tuple[int, bool]]:
     return [(r, True) for r in sorted(positive)] + [(r, False) for r in sorted(negative)]
 
 
-def evaluate(gates: list[Gate], row: int) -> bool:
+def evaluate(gates: list[Gate] | tuple[Gate, ...], row: int) -> bool:
     wires = [bool((row >> i) & 1) for i in range(26)]
     for is_and, left, right in gates:
         if not (0 <= left < len(wires) and 0 <= right < len(wires)):
@@ -186,8 +186,14 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
         flags = [gate.is_and for gate in model.gates]
         min_or = 18 - sum(not gate[0] for gate in prefix)
         if len(prefix) == 4 and prefix[:3] == ((True, 0, 13), (False, 0, 14), (True, 1, 13)):
-            # Code 84 has a 257-row separation certificate for nine ANDs.
-            min_and = 9 if prefix[3] == (False, 2, 26) else 2
+            # Replaying a fourth gate costs one AND exactly when it is AND.
+            min_and = 9
+            if prefix[3][0]:
+                # PlaneMaskAndCount covers columns active only on these flag rows.
+                positive_mask = sum(1 << i for i, (row, positive) in enumerate(rows)
+                                    if positive and evaluate(prefix, row))
+                if positive_mask & ~0x10100000100F1:
+                    min_and = 8
             model.require_at_least(flags, min_and)
             # The five certified negative-row samples cover every fourth gate.
             min_or = 18
