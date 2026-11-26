@@ -205,6 +205,9 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
         if len(prefix) >= 4 and prefix[:2] == ((False, 0, 1), (False, 3, 9)):
             # The 19 flags at negative row 159 already separate the 28 base wires.
             min_or = 18 - sum(not gate[0] for gate in prefix[2:])
+            if prefix[2:4] == ((True, 15, 27), (True, 17, 26)):
+                # PlaneCase35FirstOrFree requires 19 ORs strictly after gate four.
+                min_or = 19 - int(fifth is not None and not fifth[0])
             # PlaneCase35UniformFourth covers every choice of gates three and four.
             model.require_at_least(flags, 9 - int(fifth is not None and fifth[0]))
         model.require_at_least([-flag for flag in flags], min_or)
