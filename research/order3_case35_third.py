@@ -99,6 +99,26 @@ def check_fourth():
             yield wires[a] & wires[b], weight, ("AND", a, b)
             yield wires[a] | wires[b], weight, ("OR", a, b)
 
+    # Count a decidable sufficient condition for the Lean gate rule. Equal
+    # operand indices guarantee extensional equality even outside the tests.
+    def passes(wires, a, b, gate):
+        op = gate[0]
+        return op == "OR" or a == b or not (wires[a] & wires[b] & flags & ~255)
+
+    accepted_thirds = Counter()
+    for signal, weight, gate in outputs(columns):
+        if passes(columns, gate[1], gate[2], gate):
+            accepted_thirds[(signal, gate[0])] += weight
+    rule_counts = Counter()
+    for (signal, op), count in accepted_thirds.items():
+        wires = [*columns, signal]
+        for _, weight, gate in outputs(wires):
+            if passes(wires, gate[1], gate[2], gate):
+                rule_counts[(op, gate[0])] += count * weight
+    assert sum(rule_counts.values()) == 2253044
+    print("guarded extensions by gate types", sorted(rule_counts.items()),
+          "total", sum(rule_counts.values()))
+
     # Keep multiplicities for physical wire selections, even when two signals coincide.
     third_counts = Counter()
     third_example = {}
@@ -115,6 +135,15 @@ def check_fourth():
             example.setdefault(removed, (third_example[third], gate))
     assert sum(distribution.values()) == (2 * 28**2) * (2 * 29**2)
 
+    # Positive flags are ordered in groups of four incident points on each line.
+    line_counts = Counter(sum(bool(mask & (15 << (4 * line))) for line in range(13))
+                          for mask in distribution)
+    assert line_counts == {0: 1, 1: 135, 2: 1344}
+    fixed_pair = [mask for mask in distribution if mask < 256]
+    covered = sum(distribution[mask] for mask in fixed_pair)
+    assert len(fixed_pair) == 50 and covered == 2280900
+    print("distinct masks by number of occupied lines", sorted(line_counts.items()))
+    print("first two lines contain all exceptions for", covered, "gate choices and", len(fixed_pair), "masks")
     max_size = max(mask.bit_count() for mask in distribution)
     high, low = {}, {}
     multiplicity = Counter()
