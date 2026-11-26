@@ -148,7 +148,7 @@ class Encoding:
 def search(case: int, seconds: int, solver: str, out: Path | None, all_positives: bool = False,
            point_quadrangles: bool = False, zero_third: bool = False,
            third: Gate | None = None, fourth: Gate | None = None,
-           prune_tail: bool = True, operator_bounds: bool = False) -> str:
+           prune_tail: bool = True, operator_bounds: bool = False, fifth: Gate | None = None) -> str:
     rows = test_rows()
     if point_quadrangles:
         point_mask = (1 << 13) - 1
@@ -174,8 +174,14 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
             raise ValueError("fourth gate needs a three-gate prefix and ordered earlier wires")
         prefix += (fourth,)
         label += f" then {'AND' if op else 'OR'}({a},{b})"
+    if fifth is not None:
+        op, a, b = fifth
+        if len(prefix) != 4 or not 0 <= a <= b < 30:
+            raise ValueError("fifth gate needs a four-gate prefix and ordered earlier wires")
+        prefix += (fifth,)
+        label += f" then {'AND' if op else 'OR'}({a},{b})"
     model = Encoding(prefix, 63)
-    if (prune_tail and not point_quadrangles and fourth is not None and
+    if (prune_tail and not point_quadrangles and len(prefix) == 4 and
             prefix[:3] == ((True, 0, 13), (False, 0, 14), (True, 1, 13))):
         # PlaneFlagAndTail and PlaneFlagOrTail exclude each homogeneous suffix.
         model.clause(*(g.is_and for g in model.gates))
@@ -185,10 +191,17 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
             raise ValueError("operator bounds require the full 520-row problem")
         flags = [gate.is_and for gate in model.gates]
         min_or = 18 - sum(not gate[0] for gate in prefix)
-        if len(prefix) == 4 and prefix[:3] == ((True, 0, 13), (False, 0, 14), (True, 1, 13)):
+        if len(prefix) >= 4 and prefix[:3] == ((True, 0, 13), (False, 0, 14), (True, 1, 13)):
             # PlaneAllFourthAndCount and PlaneAllFourthOrCount cover all 1,682 codes.
-            model.require_at_least(flags, 9)
-            min_or = 18
+            min_and = 9 - int(fifth is not None and fifth[0])
+            min_or = 18 - int(fifth is not None and not fifth[0])
+            if fourth == (True, 1, 18) and fifth is not None and fifth[0]:
+                # Plane888FifthAndCodes: the fifth AND is false outside these nine flags.
+                support = sum(1 << i for i, (row, positive) in enumerate(rows)
+                              if positive and evaluate(prefix, row))
+                if support & ~0x1604E3 == 0:
+                    min_and = 9
+            model.require_at_least(flags, min_and)
         model.require_at_least([-flag for flag in flags], min_or)
     # Start with both answers. Add concrete counterexamples to each candidate.
     active = set(range(52)) if all_positives else {0, 26}
@@ -251,6 +264,8 @@ def main():
     parser.add_argument("--witness", type=Path, help="write a new file only after every selected test passes")
     parser.add_argument("--fourth", nargs=3, metavar=("OP", "LEFT", "RIGHT"),
                         help="fix a fourth binary gate after the third")
+    parser.add_argument("--fifth", nargs=3, metavar=("OP", "LEFT", "RIGHT"),
+                        help="fix a fifth binary gate after the fourth")
     parser.add_argument("--no-tail-pruning", action="store_true",
                         help="omit the two certified gate-type clauses when replaying earlier runs")
     parser.add_argument("--operator-bounds", action="store_true",
@@ -282,6 +297,17 @@ def main():
             parser.error("fourth-gate wire indices must be integers")
         if not 0 <= fourth[1] <= fourth[2] < 29:
             parser.error("expected 0 <= LEFT <= RIGHT < 29")
+    fifth = None
+    if args.fifth:
+        op, a, b = args.fifth
+        if fourth is None or op not in ("AND", "OR"):
+            parser.error("--fifth requires a fixed fourth gate and AND or OR")
+        try:
+            fifth = (op == "AND", int(a), int(b))
+        except ValueError:
+            parser.error("fifth-gate wire indices must be integers")
+        if not 0 <= fifth[1] <= fifth[2] < 30:
+            parser.error("expected 0 <= LEFT <= RIGHT < 30")
     if args.case is None:
         for i, gates in enumerate(representatives()):
             print(i, " ".join(f"{'AND' if op else 'OR'}({a},{b})" for op, a, b in gates))
@@ -289,7 +315,7 @@ def main():
     if args.seconds < 1:
         parser.error("--seconds must be positive")
     print(search(args.case, args.seconds, args.solver, args.witness, args.all_positives,
-                 args.point_quadrangles, args.zero_third, third, fourth, not args.no_tail_pruning, args.operator_bounds))
+                 args.point_quadrangles, args.zero_third, third, fourth, not args.no_tail_pruning, args.operator_bounds, fifth))
 
 
 if __name__ == "__main__":

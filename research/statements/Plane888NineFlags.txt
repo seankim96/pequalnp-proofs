@@ -61,13 +61,13 @@ let neg (i : Nat) := extend (negative[i]!)
 let input (j : Nat) : Column := fun r =>
   (if r < 52 then pos r else neg (r-52)).testBit j
 let base : List Column := List.ofFn (fun j : Fin 30 => input j.val) ++ [fun _ => false, fun _ => true]
-let omit : Nat := 0x1604e3
+let omittedFlags : Nat := 0x1604e3
 ∀ (ors : List (Nat × Nat)) (left right : Nat)
     (tail : List Gate) (out : Nat),
     let s := ors.foldl addOr base
-    let next := both (wire s left) (wire s right)
-    let final := tail.foldl step (s ++ [next])
-    (∀ p : Fin 52, next p.val = true → omit.testBit p.val = true) →
+    let firstAnd := both (wire s left) (wire s right)
+    let final := tail.foldl step (s ++ [firstAnd])
+    (∀ p : Fin 52, firstAnd p.val = true → omittedFlags.testBit p.val = true) →
     (∀ p : Fin 52, wire final out p.val = true) →
     (∀ n : Fin 468, wire final out (52+n.val) = false) →
     9 ≤ tail.countP Prod.fst
