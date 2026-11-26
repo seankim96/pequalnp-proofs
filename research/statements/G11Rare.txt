@@ -1,0 +1,4 @@
+let es : List (Fin 11 × Fin 11) := [(0, 9), (0, 10), (1, 4), (1, 8), (2, 5), (2, 10), (3, 6), (3, 7), (4, 8), (4, 10), (5, 8), (5, 9), (6, 7), (6, 10), (7, 9), (8, 9)]
+let graph (u : Nat) := PEqualNP.EdgeOwnership.edgeGraph 11 ((((es.zipIdx).filter (fun p => !u.testBit p.2)).map Prod.fst).map (fun e => (e.1.val,e.2.val)))
+let data : Array (Nat × Nat × Nat × Nat) := #[(36608, 5, 199, 503), (44800, 5, 143, 1455), (44864, 4, 135, 503), (44992, 4, 135, 503), (48960, 4, 135, 503), (52992, 5, 79, 639), (53120, 4, 71, 503), (53184, 4, 71, 503), (57216, 4, 71, 503), (61184, 5, 79, 639), (61248, 4, 135, 503), (61312, 4, 71, 503), (61376, 4, 71, 503), (65280, 4, 15, 639), (65344, 4, 15, 639), (65408, 4, 15, 639), (65472, 3, 7, 503)]
+∀ (i : Fin 17) (b : Nat), (∃ K X : Finset (Fin 11), PEqualNP.MetaComplexity.NestedCover.IsMinCover (graph (data[i.val]!).1) K ∧ (graph 0).IsVertexCover (↑(K ∪ X)) ∧ X.card ≤ b) ↔ 8 - (data[i.val]!).2.1 ≤ b
