@@ -186,19 +186,8 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
         flags = [gate.is_and for gate in model.gates]
         min_or = 18 - sum(not gate[0] for gate in prefix)
         if len(prefix) == 4 and prefix[:3] == ((True, 0, 13), (False, 0, 14), (True, 1, 13)):
-            # Replaying a fourth gate costs one AND exactly when it is AND.
-            min_and = 9
-            if prefix[3][0]:
-                # PlaneMaskAndCount covers columns active only on these flag rows.
-                positive_mask = sum(1 << i for i, (row, positive) in enumerate(rows)
-                                    if positive and evaluate(prefix, row))
-                left, right = prefix[3][1:]
-                repeats_wire = left == right or {left, right} in ({1, 13}, {1, 28}, {13, 28})
-                if (positive_mask & ~0x10100000100F1 and positive_mask & ~0x10001010121F
-                        and not repeats_wire):
-                    min_and = 8
-            model.require_at_least(flags, min_and)
-            # The five certified negative-row samples cover every fourth gate.
+            # PlaneAllFourthAndCount and PlaneAllFourthOrCount cover all 1,682 codes.
+            model.require_at_least(flags, 9)
             min_or = 18
         model.require_at_least([-flag for flag in flags], min_or)
     # Start with both answers. Add concrete counterexamples to each candidate.
