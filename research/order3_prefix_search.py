@@ -148,7 +148,8 @@ class Encoding:
 def search(case: int, seconds: int, solver: str, out: Path | None, all_positives: bool = False,
            point_quadrangles: bool = False, zero_third: bool = False,
            third: Gate | None = None, fourth: Gate | None = None,
-           prune_tail: bool = True, operator_bounds: bool = False, fifth: Gate | None = None) -> str:
+           prune_tail: bool = True, operator_bounds: bool = False, fifth: Gate | None = None,
+           sixth: Gate | None = None) -> str:
     rows = test_rows()
     if point_quadrangles:
         point_mask = (1 << 13) - 1
@@ -180,6 +181,12 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
             raise ValueError("fifth gate needs a four-gate prefix and ordered earlier wires")
         prefix += (fifth,)
         label += f" then {'AND' if op else 'OR'}({a},{b})"
+    if sixth is not None:
+        op, a, b = sixth
+        if len(prefix) != 5 or not 0 <= a <= b < 31:
+            raise ValueError("sixth gate needs a five-gate prefix and ordered earlier wires")
+        prefix += (sixth,)
+        label += f" then {'AND' if op else 'OR'}({a},{b})"
     model = Encoding(prefix, 63)
     if (prune_tail and not point_quadrangles and len(prefix) == 4 and
             prefix[:3] == ((True, 0, 13), (False, 0, 14), (True, 1, 13))):
@@ -190,7 +197,9 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
         if point_quadrangles:
             raise ValueError("operator bounds require the full 520-row problem")
         flags = [gate.is_and for gate in model.gates]
-        min_or = 18 - sum(not gate[0] for gate in prefix)
+        min_or = 18 - sum(not gate[0] for gate in prefix[:5])
+        sixth_and = int(sixth is not None and sixth[0])
+        sixth_or = int(sixth is not None and not sixth[0])
         if len(prefix) >= 4 and prefix[:3] == ((True, 0, 13), (False, 0, 14), (True, 1, 13)):
             # PlaneAllFourthAndCount and PlaneAllFourthOrCount cover all 1,682 codes.
             min_and = 9 - int(fifth is not None and fifth[0])
@@ -198,13 +207,13 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
             if fourth == (True, 1, 18) and fifth is not None and fifth[0]:
                 # Plane888FifthAndCodes: the fifth AND is false outside these nine flags.
                 support = sum(1 << i for i, (row, positive) in enumerate(rows)
-                              if positive and evaluate(prefix, row))
+                              if positive and evaluate(prefix[:5], row))
                 if support & ~0x1604E3 == 0:
                     min_and = 9
-            model.require_at_least(flags, min_and)
+            model.require_at_least(flags, min_and - sixth_and)
         if len(prefix) >= 4 and prefix[:2] == ((False, 0, 1), (False, 3, 9)):
             # The 19 flags at negative row 159 already separate the 28 base wires.
-            min_or = 18 - sum(not gate[0] for gate in prefix[2:])
+            min_or = 18 - sum(not gate[0] for gate in prefix[2:5])
             # PlaneCase35UniformFourth gives nine ANDs strictly after gate four.
             min_and = 9 - int(fifth is not None and fifth[0])
             if prefix[2:4] == ((True, 15, 27), (True, 17, 26)):
@@ -212,8 +221,13 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
                 min_or = 19 - int(fifth is not None and not fifth[0])
                 # PlaneCase35EveryFifthAndBudget keeps nine ANDs after any fifth gate.
                 min_and = 9
+            min_and -= sixth_and
+            if (prefix[2:4] == ((True, 15, 27), (True, 17, 26)) and sixth is not None
+                    and {fifth, sixth} == {(True, 13, 26), (True, 13, 27)}):
+                # PlaneCase35SixthSparseBudget applies in either order, with extra = [].
+                min_and = 9
             model.require_at_least(flags, min_and)
-        model.require_at_least([-flag for flag in flags], min_or)
+        model.require_at_least([-flag for flag in flags], min_or - sixth_or)
     # Start with both answers. Add concrete counterexamples to each candidate.
     active = set(range(52)) if all_positives else {0, 26}
     active.update((52, 52 + (len(rows) - 52) // 2))
@@ -277,6 +291,8 @@ def main():
                         help="fix a fourth binary gate after the third")
     parser.add_argument("--fifth", nargs=3, metavar=("OP", "LEFT", "RIGHT"),
                         help="fix a fifth binary gate after the fourth")
+    parser.add_argument("--sixth", nargs=3, metavar=("OP", "LEFT", "RIGHT"),
+                        help="fix a sixth binary gate after the fifth")
     parser.add_argument("--no-tail-pruning", action="store_true",
                         help="omit the two certified gate-type clauses when replaying earlier runs")
     parser.add_argument("--operator-bounds", action="store_true",
@@ -319,6 +335,17 @@ def main():
             parser.error("fifth-gate wire indices must be integers")
         if not 0 <= fifth[1] <= fifth[2] < 30:
             parser.error("expected 0 <= LEFT <= RIGHT < 30")
+    sixth = None
+    if args.sixth:
+        op, a, b = args.sixth
+        if fifth is None or op not in ("AND", "OR"):
+            parser.error("--sixth requires a fixed fifth gate and AND or OR")
+        try:
+            sixth = (op == "AND", int(a), int(b))
+        except ValueError:
+            parser.error("sixth-gate wire indices must be integers")
+        if not 0 <= sixth[1] <= sixth[2] < 31:
+            parser.error("expected 0 <= LEFT <= RIGHT < 31")
     if args.case is None:
         for i, gates in enumerate(representatives()):
             print(i, " ".join(f"{'AND' if op else 'OR'}({a},{b})" for op, a, b in gates))
@@ -326,7 +353,7 @@ def main():
     if args.seconds < 1:
         parser.error("--seconds must be positive")
     print(search(args.case, args.seconds, args.solver, args.witness, args.all_positives,
-                 args.point_quadrangles, args.zero_third, third, fourth, not args.no_tail_pruning, args.operator_bounds, fifth))
+                 args.point_quadrangles, args.zero_third, third, fourth, not args.no_tail_pruning, args.operator_bounds, fifth, sixth))
 
 
 if __name__ == "__main__":

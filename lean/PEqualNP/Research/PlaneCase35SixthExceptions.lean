@@ -1,0 +1,231 @@
+import Mathlib.Data.List.GetD
+import Mathlib.Algebra.Order.BigOperators.Group.Finset
+import Mathlib.Data.Fintype.Card
+
+namespace PEqualNP.Research.PlaneCase35SixthExceptions.PairShape
+
+def positive : Array Nat := #[
+    8193, 8194, 8200, 8704, 16386, 16388, 16400, 17408, 32772, 32776, 32800, 34816, 65544, 65552,
+    65600, 69632, 131073, 131088, 131104, 131200, 262146, 262176, 262208, 262400, 524292, 524352, 524416, 524800,
+    1048584, 1048704, 1048832, 1049600, 2097168, 2097408, 2097664, 2099200, 4194336, 4194816, 4195328, 4198400, 8388609, 8388672,
+    8389632, 8390656, 16777218, 16777344, 16779264, 16781312, 33554433, 33554436, 33554688, 33558528]
+
+def negative : Array Nat := #[
+    61888, 92576, 115585, 162112, 177472, 185152, 192832, 208132, 231170, 308368, 316033, 339076, 346753, 362113,
+    377473, 408580, 416264, 462340, 470020, 555296, 570640, 601376, 608545, 616736, 623875, 670976, 678152, 686336,
+    693506, 701696, 724226, 732416, 754946, 801808, 808969, 824337, 832528, 924680, 932864, 940040, 1079392, 1102401,
+    1133089, 1194052, 1202752, 1210432, 1217090, 1233472, 1247750, 1325076, 1333761, 1348113, 1364481, 1378821, 1395201, 1448452,
+    1456132, 1464832, 1509892, 1587248, 1595425, 1603616, 1609747, 1640483, 1656865, 1841169, 1849360, 1857537, 1871889, 2126048,
+    2143424, 2150593, 2158784, 2172068, 2196611, 2241604, 2266178, 2274368, 2372740, 2379913, 2397313, 2405504, 2412673, 2425989,
+    2434180, 2458753, 2495500, 2503684, 2641961, 2659331, 2688035, 2720771, 2757642, 2790402, 2888713, 2904073, 2921473, 3019784,
+    3158116, 3166305, 3174496, 3182659, 3199041, 3211303, 3280966, 3289156, 3313730, 3674147, 3690529, 3706883, 3735587, 4221376,
+    4235728, 4243905, 4252096, 4270468, 4278657, 4286848, 4292995, 4309377, 4335940, 4344136, 4352320, 4393222, 4401412, 4466836,
+    4475017, 4524165, 4532356, 4540545, 4737289, 4751635, 4786435, 4802817, 4817155, 4851978, 4868360, 4917506, 4982809, 4999177,
+    5253204, 5275731, 5310471, 5376070, 5384260, 5441542, 5507093, 5515284, 5572613, 5769235, 5799955, 5834755, 6031377, 6308041,
+    6324419, 6340801, 6357127, 6389891, 6422606, 6553741, 6570121, 6619269, 7340103, 7372867, 7405575, 7471174, 8417696, 8434064,
+    8442752, 8450432, 8462756, 8471456, 8479136, 8487810, 8504192, 8540936, 8557314, 8573696, 8585990, 8618754, 8663188, 8671880,
+    8688272, 8695952, 8704640, 8786444, 8802824, 8925488, 8933672, 8941856, 8950034, 8958224, 9048330, 9064712, 9081090, 9449524,
+    9474578, 9503270, 9572870, 9605634, 9634310, 9703956, 9711636, 9736720, 9835012, 9965618, 9973808, 9998354, 10498212, 10506408,
+    10514592, 10551462, 10559652, 10620942, 10752140, 10760324, 10768520, 10883084, 11014186, 11030568, 11145226, 11538470, 11546660, 11599910,
+    11669510, 12062754, 12591508, 12616082, 12624272, 12648838, 12657028, 12681602, 12714254, 12779782, 12845212, 12853396, 13107482, 13140242,
+    13238538, 14680206, 14745734, 14811150, 14942348, 16819536, 16827201, 16852260, 16859937, 16877313, 16892673, 16917828, 16925512, 16942912,
+    16950592, 16958272, 16975620, 16983300, 17008384, 17073681, 17106437, 17139201, 17171980, 17237508, 17311024, 17318185, 17335569, 17343760,
+    17368353, 17376544, 17383713, 17401089, 17564697, 17597457, 17834100, 17842785, 17859153, 17875521, 17891877, 17908257, 18088469, 18121233,
+    18153989, 18883684, 18890857, 18940965, 18949156, 19006540, 19014724, 19137549, 19203077, 19268620, 19399721, 19415081, 19465249, 19661833,
+    19923045, 19931236, 19939425, 19988517, 20980052, 20988233, 21004625, 21012816, 21020993, 21102924, 21111108, 21119304, 21233693, 21496089,
+    21512457, 21528849, 21757977, 22020181, 22028372, 22052945, 22282261, 23068749, 23085129, 23199820, 23330829, 24117317, 25174324, 25183016,
+    25232164, 25239844, 25248544, 25297676, 25314056, 25363204, 25428508, 25559564, 25690424, 25698608, 25706792, 26214964, 26222644, 26280484,
+    26477076, 29360412, 29368596, 29491468, 29622300, 29884696, 33581280, 33596624, 33631392, 33639072, 33646752, 33654402, 33704520, 33719874,
+    33754626, 33785346, 33827984, 33835656, 33851024, 33858704, 33885824, 33893504, 33901184, 33916544, 33951240, 33966600, 34016768, 34090032,
+    34147362, 34155552, 34212874, 34278402, 34343960, 34352144, 34475016, 34613360, 34622048, 34629728, 34636370, 34671138, 34687520, 34736706,
+    34753088, 34767426, 34802178, 35129394, 35137584, 35194914, 35661024, 35668200, 35676384, 35685570, 35693760, 35718306, 35726496, 35751042,
+    35783754, 35816514, 36176938, 36242466, 36307978, 37759184, 37767368, 37775552, 37781714, 37789904, 37881930, 37898312, 38013080, 38021264,
+    38029448, 38275098, 38406154, 38537240, 38799442, 38807632, 38830162, 38930498, 39323666, 39846090, 39862472, 39878850, 39977034, 41960104,
+    41976466, 42009250, 42025632, 42041986, 42205848, 42222216, 42238608, 42467386, 42992178, 43024914, 43057698, 43515954, 44040362, 44056744,
+    44105890, 44564522, 46137498, 46170258, 46399640, 46661658, 48234634, 50340976, 50348648, 50366032, 50373712, 50464328, 50479688, 50497088,
+    50595352, 50628112, 50726408, 50857016, 50865200, 51119128, 51380848, 51388528, 51397216, 51413584, 52429928, 52438112, 52445288, 52560968,
+    52954152, 58720824, 58737192, 58982936, 59244600, 59769392]
+
+abbrev Column := Nat → Bool
+def extend (x : Nat) : Nat :=
+  let b (i : Nat) := (x >>> i) &&& 1
+  x ||| ((b 0 ||| b 1) <<< 26) ||| ((b 3 ||| b 9) <<< 27)
+def pos (i : Nat) := extend (positive[i]!)
+def neg (i : Nat) := extend (negative[i]!)
+def input (j : Nat) : Column := fun r =>
+  (if r < 52 then pos r else neg (r-52)).testBit j
+def mix (op : Bool) (a b : Column) : Column := fun r =>
+  if op then a r && b r else a r || b r
+def base (i : Fin 30) : Column :=
+  if i.val < 28 then input i.val
+  else if i.val = 28 then mix true (input 15) (input 27)
+  else mix true (input 17) (input 26)
+
+private def words : Array Nat := #[282574488403969, 17592187093010, 562949970198816, 268440068, 4295106624, 68721837056, 2199061020672, 35184976592896, 1125909578907648, 154753040392, 4675071901824, 79199196940288, 2393087057887232, 15, 240, 3840, 61440, 983040, 15728640, 251658240, 4026531840, 64424509440, 1030792151040, 16492674416640, 263882790666240, 4222124650659840, 300166675496979, 155021480460, 512, 65536]
+private def w (a : Fin 30) := words[a.val]!
+private theorem posBits : ∀ (a : Fin 30) (p : Fin 52), base a p.val = (w a).testBit p.val := by decide +kernel
+private def sub (a b : Fin 30) := a = b ∨
+  (b = 26 ∧ (a = 0 ∨ a = 1)) ∨ (b = 27 ∧ (a = 3 ∨ a = 9)) ∨
+  (a = 28 ∧ (b = 15 ∨ b = 27)) ∨ (a = 29 ∧ (b = 17 ∨ b = 26))
+private theorem wordOr (x : Nat) :
+    (extend x).testBit 26 = (x.testBit 26 || (extend x).testBit 0 || (extend x).testBit 1) ∧
+    (extend x).testBit 27 = (x.testBit 27 || (extend x).testBit 3 || (extend x).testBit 9) := by
+  have hi (v : Nat) : (v%2).testBit 1 = false := by
+    have cases : v%2=0 ∨ v%2=1 := by omega
+    rcases cases with h|h <;> rw [h] <;> decide
+  simp [extend,Nat.testBit_or,Nat.testBit_shiftLeft,Bool.or_assoc,hi]
+private theorem lower (a b : Fin 30) (h : sub a b) (r : Nat) : base a r = true → base b r = true := by
+  rcases h with e | ⟨eb,ea|ea⟩ | ⟨eb,ea|ea⟩ | ⟨ea,eb|eb⟩ | ⟨ea,eb|eb⟩
+  · simp [e]
+  all_goals subst a; subst b
+  · change input 0 r = true → input 26 r = true
+    by_cases hr : r < 52 <;> simp only [input,hr,ite_true,ite_false,pos,neg]
+    all_goals rw [(wordOr _).1]; grind
+  · change input 1 r = true → input 26 r = true
+    by_cases hr : r < 52 <;> simp only [input,hr,ite_true,ite_false,pos,neg]
+    all_goals rw [(wordOr _).1]; grind
+  · change input 3 r = true → input 27 r = true
+    by_cases hr : r < 52 <;> simp only [input,hr,ite_true,ite_false,pos,neg]
+    all_goals rw [(wordOr _).2]; grind
+  · change input 9 r = true → input 27 r = true
+    by_cases hr : r < 52 <;> simp only [input,hr,ite_true,ite_false,pos,neg]
+    all_goals rw [(wordOr _).2]; grind
+  · change (input 15 r && input 27 r) = true → input 15 r = true
+    simp_all
+  · change (input 15 r && input 27 r) = true → input 27 r = true
+    simp_all
+  · change (input 17 r && input 26 r) = true → input 17 r = true
+    simp_all
+  · change (input 17 r && input 26 r) = true → input 26 r = true
+    simp_all
+
+private def idx (a b : Fin 30) : Fin 52 := Fin.ofNat 52 (Nat.log2 (w a &&& w b))
+private theorem codes : ∀ a b : Fin 30, ¬ sub a b → ¬ sub b a →
+    let z := w a &&& w b
+    z = 0 ∨ z = 2^(idx a b).val ∨ z = 3 ∨ z = 12 := by
+  unfold sub
+  decide +kernel
+end PEqualNP.Research.PlaneCase35SixthExceptions.PairShape
+open PEqualNP.Research.PlaneCase35SixthExceptions.PairShape in
+theorem PEqualNP.Research.PlaneCase35SixthExceptions.PairShape : ∀ a b : Fin 30,
+    let x := mix true (base a) (base b)
+    (∀ r : Nat, x r = base a r) ∨ (∀ r : Nat, x r = base b r) ∨
+    (∃ f : Fin 52, ∀ p : Fin 52, x p.val = true → p = f) ∨
+    (∀ p : Fin 52, x p.val = true → p.val = 0 ∨ p.val = 1) ∨
+    (∀ p : Fin 52, x p.val = true → p.val = 2 ∨ p.val = 3) := by
+  intro a b x
+  by_cases ha : sub a b
+  · left; intro r
+    cases e : base a r <;> simp [x,mix,e,lower a b ha r]
+  by_cases hb : sub b a
+  · right; left; intro r
+    cases e : base b r <;> simp [x,mix,e,lower b a hb r]
+  have on (p : Fin 52) : x p.val = (w a &&& w b).testBit p.val := by
+    simp [x,mix,posBits,Nat.testBit_and]
+  rcases codes a b ha hb with h | h | h | h
+  · exact Or.inr (Or.inr (Or.inl ⟨0,by intro p; simp [on,h]⟩))
+  · right; right; left; refine ⟨idx a b,?_⟩; intro p hp
+    apply Fin.ext; symm; simpa [on,h,Nat.testBit_two_pow] using hp
+  · right; right; right; left
+    have bits : ∀ p : Fin 52, (3:Nat).testBit p.val = true → p.val = 0 ∨ p.val = 1 := by decide
+    simpa only [on,h] using bits
+  · right; right; right; right
+    have bits : ∀ p : Fin 52, (12:Nat).testBit p.val = true → p.val = 2 ∨ p.val = 3 := by decide
+    simpa only [on,h] using bits
+
+namespace PEqualNP.Research.PlaneCase35SixthExceptions
+open PairShape
+def next (x : Column) : Fin 31 → Column :=
+  fun i => if lt : i.val < 30 then base ⟨i.val,lt⟩ else x
+def Safe (s : Finset (Fin 52)) (x : Column) :=
+  ∀ p : Fin 52, p ∉ s → x p.val = true →
+    ∃ j : Fin 30, base j p.val = true ∧ ∀ r : Nat, base j r = true → x r = true
+
+private def Sparse (s : Finset (Fin 52)) (x : Column) :=
+  ∀ p : Fin 52, x p.val = true → p ∈ s
+private theorem small {s x} (h : Sparse s x) : Safe s x := by
+  intro p out on; exact False.elim (out (h p on))
+private theorem leaf (s) (i : Fin 30) : Safe s (base i) := by
+  intro p _ hit; exact ⟨i,hit,fun _ h => h⟩
+private theorem enlarge {s t x} (h : Safe s x) (ht : s ⊆ t) : Safe t x := by
+  intro p out; exact h p (fun hs => out (ht hs))
+private theorem either {s x y} (hx : Safe s x) (hy : Safe s y) : Safe s (mix false x y) := by
+  intro p out on
+  rcases Bool.or_eq_true_iff.mp on with h | h
+  · obtain ⟨j,hj,sub⟩ := hx p out h
+    exact ⟨j,hj,fun r on => by simp [mix,sub r on]⟩
+  · obtain ⟨j,hj,sub⟩ := hy p out h
+    exact ⟨j,hj,fun r on => by simp [mix,sub r on]⟩
+private theorem classify (a b : Fin 30) :
+    (∃ j : Fin 30, mix true (base a) (base b) = base j) ∨
+    ∃ s : Finset (Fin 52), s.card ≤ 2 ∧ Sparse s (mix true (base a) (base b)) := by
+  rcases PEqualNP.Research.PlaneCase35SixthExceptions.PairShape a b with ha | hb | ⟨f,h⟩ | h | h
+  · exact Or.inl ⟨a,funext ha⟩
+  · exact Or.inl ⟨b,funext hb⟩
+  · exact Or.inr ⟨{f},by simp,fun p hp => by simpa using h p hp⟩
+  · refine Or.inr ⟨{0,1},by decide,?_⟩
+    intro p hp
+    simp only [Finset.mem_insert, Finset.mem_singleton]
+    rcases h p hp with hv | hv
+    · exact Or.inl (Fin.ext hv)
+    · exact Or.inr (Fin.ext hv)
+  · refine Or.inr ⟨{2,3},by decide,?_⟩
+    intro p hp
+    simp only [Finset.mem_insert, Finset.mem_singleton]
+    rcases h p hp with hv | hv
+    · exact Or.inl (Fin.ext hv)
+    · exact Or.inr (Fin.ext hv)
+private theorem one (op : Bool) (a b : Fin 30) :
+    ∃ s : Finset (Fin 52), s.card ≤ 2 ∧ Safe s (mix op (base a) (base b)) := by
+  cases op
+  · exact ⟨∅,by simp,either (leaf _ _) (leaf _ _)⟩
+  · rcases classify a b with ⟨j,e⟩ | ⟨s,cs,hs⟩
+    · exact ⟨∅,by simp,e ▸ leaf _ j⟩
+    · exact ⟨s,cs,small hs⟩
+private theorem independent {x y : Column} {s t : Finset (Fin 52)}
+    (cs : s.card ≤ 2) (ct : t.card ≤ 2) (hx : Safe s x) (hy : Safe t y) :
+    ∃ u : Finset (Fin 52), u.card ≤ 4 ∧ Safe u x ∧ Safe u y := by
+  have c := Finset.card_union_le s t
+  exact ⟨s ∪ t,by omega,enlarge hx Finset.subset_union_left,enlarge hy Finset.subset_union_right⟩
+private theorem dependent (op q : Bool) (a b j : Fin 30) :
+    let x := mix op (base a) (base b)
+    ∃ s : Finset (Fin 52), s.card ≤ 4 ∧ Safe s x ∧ Safe s (mix q x (base j)) := by
+  dsimp only
+  cases q
+  · obtain ⟨s,c,h⟩ := one op a b
+    exact ⟨s,by omega,h,either h (leaf _ _)⟩
+  · cases op
+    · obtain ⟨s,cs,hs⟩ := one true a j
+      obtain ⟨t,ct,ht⟩ := one true b j
+      have eq : mix true (mix false (base a) (base b)) (base j) =
+          mix false (mix true (base a) (base j)) (mix true (base b) (base j)) := by
+        funext r; cases ha : base a r <;> cases hb : base b r <;> cases hj : base j r <;> simp [mix, ha, hb, hj]
+      obtain ⟨u,cu,ha,hb⟩ := independent cs ct hs ht
+      exact ⟨u,cu,either (leaf _ _) (leaf _ _),eq ▸ either ha hb⟩
+    · rcases classify a b with ⟨k,eq⟩ | ⟨s,c,h⟩
+      · rw [eq]; obtain ⟨s,c,h⟩ := one true k j
+        exact ⟨s,by omega,leaf _ _,h⟩
+      · exact ⟨s,by omega,small h,small (fun p on => h p (Bool.and_eq_true_iff.mp on).1)⟩
+private theorem splitRead (x : Column) (i : Fin 31) :
+    (∃ j : Fin 30, next x i = base j) ∨ next x i = x := by
+  by_cases h : i.val < 30
+  · exact Or.inl ⟨⟨i.val,h⟩,by simp [next,h]⟩
+  · exact Or.inr (by simp [next,h])
+end PEqualNP.Research.PlaneCase35SixthExceptions
+open PEqualNP.Research.PlaneCase35SixthExceptions PEqualNP.Research.PlaneCase35SixthExceptions.PairShape in
+theorem PEqualNP.Research.PlaneCase35SixthExceptions : ∀ (op₅ op₆ : Bool) (a b : Fin 30) (l r : Fin 31),
+    let x := mix op₅ (base a) (base b)
+    let y := mix op₆ (next x l) (next x r)
+    ∃ s : Finset (Fin 52), s.card ≤ 4 ∧ Safe s x ∧ Safe s y := by
+  intro op q a b l r x y
+  rcases splitRead x l with ⟨j,hj⟩ | hj <;> rcases splitRead x r with ⟨k,hk⟩ | hk
+  · obtain ⟨s,cs,hs⟩ := one op a b
+    obtain ⟨t,ct,ht⟩ := one q j k
+    simpa only [y,hj,hk] using independent cs ct hs ht
+  · have comm : mix q (base j) x = mix q x (base j) := by
+      cases q <;> funext r <;> simp [mix,Bool.or_comm,Bool.and_comm]
+    simpa only [y,hj,hk,comm,x] using dependent op q a b j
+  · simpa only [y,hj,hk,x] using dependent op q a b k
+  · have same : mix q x x = x := by cases q <;> funext r <;> simp [mix]
+    obtain ⟨s,c,h⟩ := one op a b
+    exact ⟨s,by omega,h,by simpa only [y,hj,hk,same] using h⟩
