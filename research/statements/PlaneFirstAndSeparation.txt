@@ -1,0 +1,13 @@
+let Column := Nat → Bool
+let disj (ws : List Column) (r : Nat) := ws.any (fun w => w r)
+let both (a b : Column) (r : Nat) := a r && b r
+let wire (s : List Column) (i : Nat) := s.getD i (fun _ => false)
+let addOr (s : List Column) (g : Nat × Nat) := s ++ [fun r => wire s g.1 r || wire s g.2 r]
+let good (p a b : Nat) (w : Column) := w p = true → w a = true ∨ w b = true
+let separated (s : List Column) := ∃ n : Fin 257 → Fin 468, ∀ i j : Fin 257, i.val < j.val →
+    ∃ p : Fin 52, ∀ w ∈ s, good p.val (52 + (n i).val) (52 + (n j).val) w
+∀ (base : List Column) (gs : List (Nat × Nat)) (left right : Nat),
+    (∀ l r : List Column, (∀ w ∈ l, w ∈ base) → (∀ w ∈ r, w ∈ base) →
+      separated (base ++ [both (disj l) (disj r)])) →
+    let s := gs.foldl addOr base
+    separated (s ++ [both (wire s left) (wire s right)])
