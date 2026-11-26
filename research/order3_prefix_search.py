@@ -238,6 +238,14 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
                        for end in range(5, len(prefix) - 1)
                        for i, (row, yes) in enumerate(rows) if yes and i not in guard):
                     min_and = 9
+            if prefix[2:4] == ((True, 15, 27), (True, 17, 26)):
+                # OR preserves domination by an active base wire. Each subsequent
+                # AND is safe if it is silent outside the certified 13 flags.
+                omitted = {0, 1, 2, 3, 5, 6, 7, 9, 15, 16, 22, 33, 42}
+                if all(not evaluate(prefix[:end], row)
+                       for end in range(5, len(prefix)+1) if prefix[end-1][0]
+                       for i, (row, yes) in enumerate(rows) if yes and i not in omitted):
+                    min_and = 9  # PlaneCase35ThirteenFlagSuffix
             model.require_at_least(flags, min_and)
         model.require_at_least([-flag for flag in flags], min_or - sixth_or - later_or)
     # Start with both answers. Add concrete counterexamples to each candidate.
