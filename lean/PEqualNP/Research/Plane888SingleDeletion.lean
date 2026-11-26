@@ -1,0 +1,968 @@
+import PEqualNP.Research.Plane888NineFlags
+
+namespace PEqualNP.Research.Plane888SingleDeletion
+open Plane888NineFlags PlaneFirstAndBudget PlaneFirstAndSeparation
+
+private structure Family where
+  group : Nat
+  indices : Array Nat
+  negatives : Array Nat
+  boards : Array Nat
+  minima : Array Nat
+  choices : Array Nat
+
+private def family0 : Family where
+  group := 0xf5048ff40f800
+  indices := #[
+  0x0, 0x2, 0x4, 0x5,
+  0x6, 0x7, 0x9, 0xa,
+  0xb, 0xc, 0xd, 0x11,
+  0x12, 0x14, 0x15, 0x16,
+  0x18, 0x19, 0x1a, 0x1b,
+  0x20, 0x21, 0x22, 0x25,
+  0x26, 0x27, 0x29, 0x2a,
+  0x2d, 0x2e, 0x31, 0x32,
+  0x33, 0x35, 0x37, 0x38,
+  0x39, 0x3b, 0x3c, 0x3f,
+  0x49, 0x4e, 0x4f, 0x50,
+  0x52, 0x56, 0x57, 0x58,
+  0x5a, 0x5b, 0x5d, 0x5e,
+  0x62, 0x63, 0x65, 0x66,
+  0x67, 0x68, 0x6a, 0x6b,
+  0x70, 0x71, 0x73, 0x74,
+  0x76, 0x78, 0x7a, 0x7d,
+  0x81, 0x82, 0x83, 0x84,
+  0x88, 0x89, 0x8a, 0x8b,
+  0x8c, 0x8d, 0x91, 0x9b,
+  0x9d, 0x9f, 0xa0, 0xa3,
+  0xa4, 0xa5, 0xa7, 0xa8,
+  0xa9, 0xaa, 0xab, 0xac,
+  0xad, 0xaf, 0xb1, 0xb2,
+  0xb3, 0xb4, 0xb5, 0xb6,
+  0xb7, 0xb8, 0xb9, 0xba,
+  0xbb, 0xbc, 0xbd, 0xc0,
+  0xc2, 0xc3, 0xc5, 0xc7,
+  0xc9, 0xcf, 0xd2, 0xd3,
+  0xd6, 0xd7, 0xd8, 0xda,
+  0xdb, 0xdc, 0xdd, 0xe0,
+  0xe2, 0xe7, 0xe9, 0xea,
+  0xeb, 0xec, 0xed, 0xee,
+  0xf0, 0xf1, 0xf5, 0xf6,
+  0xf7, 0xf8, 0xf9, 0xfa,
+  0xfc, 0xfd, 0xfe, 0x100,
+  0x102, 0x103, 0x104, 0x106,
+  0x107, 0x108, 0x10e, 0x10f,
+  0x110, 0x111, 0x113, 0x114,
+  0x116, 0x117, 0x11b, 0x11e,
+  0x120, 0x121, 0x122, 0x123,
+  0x125, 0x126, 0x128, 0x12a,
+  0x12b, 0x12c, 0x12e, 0x12f,
+  0x131, 0x132, 0x133, 0x13c,
+  0x13d, 0x13e, 0x13f, 0x142,
+  0x143, 0x144, 0x145, 0x146,
+  0x149, 0x14a, 0x14b, 0x14c,
+  0x14d, 0x14e, 0x150, 0x151,
+  0x152, 0x153, 0x154, 0x157,
+  0x158, 0x159, 0x15a, 0x15f,
+  0x160, 0x161, 0x162, 0x164,
+  0x168, 0x169, 0x16b, 0x16f,
+  0x170, 0x173, 0x174, 0x175,
+  0x176, 0x177, 0x179, 0x17a,
+  0x180, 0x181, 0x182, 0x187,
+  0x189, 0x18a, 0x18c, 0x18d,
+  0x18f, 0x193, 0x194, 0x196,
+  0x198, 0x19d, 0x19e, 0x19f,
+  0x1a0, 0x1a1, 0x1a2, 0x1a3,
+  0x1a5, 0x1a8, 0x1ab, 0x1ac,
+  0x1ad, 0x1b0, 0x1b1, 0x1b5,
+  0x1b8, 0x1b9, 0x1ba, 0x1bb,
+  0x1bc, 0x1bd, 0x1bf, 0x1c0,
+  0x1c3, 0x1c6, 0x1ca, 0x1cb,
+  0x1cc]
+  negatives := #[
+  0x800f1c0, 0x801c381, 0x2b540, 0x802d340,
+  0x802f140, 0x32d04, 0x4b490, 0x804d281,
+  0x52c84, 0x8054a81, 0x8058681, 0x70e04,
+  0x72c04, 0x8b510, 0x92d20, 0x8094921,
+  0x8098503, 0xa3d00, 0x80a5908, 0x80a7900,
+  0xb8502, 0xc3c10, 0x80c5809, 0xe1c08,
+  0xe3c00, 0x80e5808, 0x810d241, 0x8114a21,
+  0x8127840, 0x129242, 0x143814, 0x8145a01,
+  0x8149211, 0x8150a05, 0x161a04, 0x163804,
+  0x8165a00, 0x183830, 0x8185821, 0x8190823,
+  0x2124a4, 0x243484, 0x8245089, 0x8249481,
+  0x824d081, 0x26140c, 0x263404, 0x8285029,
+  0x8290423, 0x8298403, 0x2a9402, 0x82c1409,
+  0x303064, 0x8305061, 0x8309043, 0x830d041,
+  0x8310027, 0x321046, 0x329042, 0x8381023,
+  0x40a1d0, 0x840c1c1, 0x412984, 0x8414981,
+  0x8418183, 0x422944, 0x8426940, 0x442894,
+  0x8454881, 0x8484909, 0x8488113, 0x8490903,
+  0x84a4908, 0x4b0902, 0x84c0819, 0x84c4809,
+  0x502854, 0x8508053, 0x530806, 0x860c0c1,
+  0x8618083, 0x864008d, 0x8644089, 0x8708043,
+  0x8710007, 0x720046, 0x80b190, 0x880d380,
+  0x880f180, 0x8121a4, 0x88143a0, 0x88161a0,
+  0x818382, 0x8825308, 0x882d300, 0x830306,
+  0x838302, 0x843094, 0x8845288, 0x849290,
+  0x84b090, 0x884d280, 0x86120c, 0x8865208,
+  0x883130, 0x8885128, 0x8887120, 0x8a110a,
+  0x8a9102, 0x903034, 0x910226, 0x929202,
+  0x941214, 0x989012, 0x8a070a0, 0xa100a6,
+  0xa4108c, 0xa43084, 0x8a45088, 0xa8102a,
+  0x8a85028, 0xaa100a, 0xb01026, 0xb21006,
+  0xc02194, 0xc18182, 0xc30106, 0xc4009c,
+  0xc42094, 0xc8011a, 0xc88112, 0xca010a,
+  0xe10086, 0xe2000e, 0x1012524, 0x9014321,
+  0x9018701, 0x901c301, 0x1022544, 0x9024348,
+  0x102a540, 0x902c340, 0x1030704, 0x1038700,
+  0x9050605, 0x9058601, 0x106060c, 0x1082530,
+  0x9084129, 0x9088511, 0x90c0419, 0x90c8411,
+  0x1102074, 0x9104261, 0x910c241, 0x9110225,
+  0x9140215, 0x9148211, 0x9210425, 0x1222444,
+  0x9250405, 0x126040c, 0x9280429, 0x9284029,
+  0x92c0409, 0x9300065, 0x9304061, 0x1402154,
+  0x9404149, 0x9408151, 0x940c141, 0x142014c,
+  0x9424148, 0x944001d, 0x9480119, 0x9604049,
+  0x162004c, 0x964000d, 0x9700045, 0x1810324,
+  0x1812124, 0x9814320, 0x182030c, 0x9824308,
+  0x186020c, 0x1880138, 0x1882130, 0x9884128,
+  0x1900234, 0x1902034, 0x1940214, 0x1c0011c,
+  0x1c02114, 0x1c2010c, 0x1c4001c, 0x200a4d0,
+  0x2012ca0, 0xa014aa0, 0xa0168a0, 0x2038602,
+  0x2042c90, 0xa044a88, 0x2048690, 0x2050e80,
+  0x2060e08, 0xa064a08, 0x2082c30, 0x20b0c02,
+  0x20c0c18, 0x2102870, 0xa104a60, 0xa106860,
+  0x2108252, 0x2110a22, 0x2120a42, 0xa124a40,
+  0x22024e0, 0xa2040e8, 0xa2060e0, 0x2218482,
+  0x2228442, 0x228042a, 0x22a040a, 0x24028d0,
+  0xa4068c0, 0xa424848, 0x2440898, 0xa444888,
+  0x24a080a, 0x2520842, 0x2580812, 0x26000ca,
+  0xa6040c8, 0x26080c2, 0x262004a, 0xa8042a8,
+  0x28102a2, 0x2840298, 0x288003a, 0x2900232,
+  0x2908212, 0x2a000aa, 0xaa040a8, 0x2c08092,
+  0x2e0008a, 0x3002470, 0xb004268, 0x3008650,
+  0x300a450, 0x3020648, 0x3028640, 0x3040618,
+  0x3080438, 0x3100270, 0x3200468, 0x3202460,
+  0xb204068]
+  boards := #[
+  0x6e77d7ef3038000000000001facf1a9eb9cc38c418682, 0x1bd6f078708080000000000000003e6e8ad801903962c10f47008020110000, 0x7f15f28a3d9054471dc3960428232500a4310630e40001920, 0x15a566d9e620132068bc3f91e0054082a83d00ac420060d200008a40002c40000,
+  0x39a9e0448013450df600628031e800079003211a004034481000002140202040, 0x1f066d800272e40703e38006c4b1800c0058c67000e000000093181e00800c000, 0x1e7e007a397de000800059fe087003c00000000000028b00636f000003400001d, 0x1e3b8d8f000f780000000000000011b07c003e1fc78019f0001f00000007c3,
+  0x38ef85f800038ffce70001f01ffc003e7f0000000001fe03f, 0x2ec1b80000f43ea051e800003e07eb800001c0edf480000000000017ac000e8a, 0xdfa000007901dd9800000017c0efd5400000000000000000000f6b0001b37d64, 0x7f80effb7000000000000000000000000000005fbec00000fedbeedb20,
+  0xff7bffe61c000000efcfe7df7ee20dd, 0x81200001850a41592410008081081441102425120b40100e50104328512a7175, 0x10044090b068c226008a0954806102a80014406a46d848934a0a094509e4c829b, 0x5890200181004880000060024a2b3042002903951c9a04134c61801241124df,
+  0x1000082088f0003800014803c3d0600840019e114291c10301820811df22, 0x600043250c0b08201c118028004fc284a0098c1e02043060604601c339e183c, 0x800200c00013f044102201330c70001807100fe00060c1800087e1fc3e01fc0, 0x100040506001c0000e00401c00f8000e03821f0000000fe0080f80e003ffe000,
+  0x2001806000fe0000700400603f0000000c03e000003870000ff000fffc000000, 0x1c01607807f0000000007807fc00000300ffc0000003f80000fffff0000000000, 0x1807ff800000078007ff800000003ff0000000003ffffff000000000000000, 0x1ff80000000007fff800000000003fffffffffffc000000000000000000000,
+  0x1ffe0000000000007ffffffffffffffc000000000000000000000000000000000, 0x1fffffffffffffff8000000000000000000000000000000000000000000000000]
+  minima := #[
+  0x8000001, 0x2, 0x4, 0x8,
+  0x10, 0x20, 0x40, 0x80,
+  0x100, 0x200, 0x400, 0x800,
+  0x1000, 0x2000, 0x8004000, 0x8000,
+  0x10000, 0x20000, 0x40000, 0x80000,
+  0x100000, 0x200000, 0x400000, 0x800000,
+  0x1000000, 0x2000000]
+  choices := #[
+  0xce7ffc7f1fffeffb7fffffebffd29ffce7f94bff8ffff843ff594625104148fff, 0xfe7f9fff1fffff7ffedffd6bffd29f9cfff97fff8fff16188359462510416ffff, 0xce7ffc7ffffdeffb5bffffebfa53ffffe7f94bff39480843ff5946277fff48fff, 0xce7ffc7fffffeffb7edffd6bffd3ff9fe7f94bff39480843ff59462510416ffff,
+  0xce7ffc7fffffeffb7fffffebffd3ffffe7f94bff39480843ff594625104148fff, 0xfe73ffe3ffbdffffdbffafebfa53ffffff397fff39480618837ffef77ddf48fff, 0xcffffc7f1ffdfffb5bffffff5a7e9ffcfff418bf8fe3f87e1f5946273bff48fff, 0xcfff9c7f1fffff7b7edffd7ffffe9f9cfff418bf8fff187fff59462510416ffff,
+  0xfff3ffe31fbdffffdbffaffffa7e9ffcff3418bf8ffff618837ffef77ddf48fff, 0xffff9fe31fbfff7ffedfad7ffffe9f9cfff418bf8fff1618837ffff510416ffff, 0xffff9fff1ffdff7fdadffd7ffa7e9f9cfff418bf8fff1618835946277fff6ffff, 0xfff3ffe3ffbdffffdadfad7ffa7fff9fff3418bf39480618837ffef77ddf6ffff,
+  0xfff3ffe3ffbdffffdbffaffffa7fffffff3418bf39480618837ffef77ddf48fff, 0xce7ffc7ffffdfffb5bffffeb5a53ff49cc297fffffe3f87e1f5946273bff48fff, 0xfe7fffe3ffbdffffdbf6afebfa53ff49cc297e5ffc7ff618837bfff77fff48fff, 0xfe7f9fe3ffbfff7ffff6afebffd3ff49cc297e5ffc7f1618837bfff51041fffff,
+  0xfe7f9ffff8fdff7fdbffffebfa53ff49cc297fffffff1618835946277feefffff, 0xce7ffc63ffbdfffb5bffafebfa53ff49cc297fff3948087fff7ffff77fff48fff, 0xce7ffc63ffbffffb7fffafebffd3f449cc297fff3948087ff07fdff51041fb7ff, 0xce7ffc63ffbffffb7fffafebffd3ff49cc297fff3948087fff7ffff5104148fff,
+  0xfe7ffffff8fdffffdbffffebfa53ff49cc297fff39480618835946277feefffff, 0xcffffc63ffbdfffb5bffafff5a7fff49cc2418bfffe3f87e1f7ffff73bff48fff, 0xcfff9c63ffbfff7b7fffaffffffff449cc2418bfffff187ff07fdff51041fb7ff, 0xcffffc63ffbdfffb5bffaffffa7ff449cc2418bf3948087ff07fdff77ffffb7ff,
+  0xcffffc63ffbdfffb5bffaffffa7fff49cc2418bf3948087fff7ffff77fff48fff, 0xcffffc63ffbffffb7fffaffffffff449cc2418bf3948087ff07fdff51041fb7ff, 0xcfff9c7fffffef7b7edffd7ff520e39fe7ffcbffffff1843ff59462510416ffff, 0xffff9fe3ffbfff7ffed6ad7ff520e39ffffffe5ffc7f1618837bfff510416ffff,
+  0xcffffc63ffbfeffb7fffaffff520e3ffe7ffcbff39480843ff7ffff5104148fff, 0xcffffc7ff8ffeffb7edffd7ff520e39fe7ffcbff39480843ff59462fffee6ffff, 0xcff3fc63ffbffffb7fffafff5520e3ffff3418bfffe3f87e1f7ffeffb9df48fff, 0xcfff9c63ffbfff7b7edfad7ff520e39ffff418bfffff187fff7ffff510416ffff,
+  0xcfff9c7fffffff7b7edffd7f5520e39ffff418bfffe3187e1f59462fbbff6ffff, 0xfff39fe3ffbfff7ffedfad7ff520e39fff3418bfffff1618837ffefffddf6ffff, 0xcff3fc63ffbffffb7edfad7ff520e39fff3418bf3948087fff7ffefffddf6ffff, 0xcff3fc63ffbffffb7fffaffff520e3ffff3418bf3948087fff7ffefffddf48fff,
+  0xcffffc63ffbffffb7edfad7ff520e39ffff418bf3948087fff7ffff510416ffff, 0xcffffc63ffbffffb7ff6afff5520e349cc2ffe5ffc63f87e1f7bffffbbff48fff, 0xcfff9c63ffbfff7b7ff6affff520e349cc2ffe5ffc7f187fff7bfff51041fffff, 0xffff9fe3f8bfff7ffff6affff520e349cc2ffe5ffc7f1618837bffffffeefffff,
+  0xfff3ffff1ffdffffdbf65a504a7e9ffcff3ffe5f8c7ff61883fbfef77ddf48fff, 0xcff3fc7f1ffdfffb5bff5a504a7e9ffcff3418bf8ffff87ffffffef77ddf48fff, 0xcfff9c7f1fffff7b7fff5a504ffe94fcfff418bf8fff187ff0ffdff51041fb7ff, 0xcfff9c7f1ffdff7b5bff5a504a7e9ffcfff418bf8fff187fff5946277ffffffff,
+  0xcfff9c7f1fffff7b7fff5a504ffe9ffcfff418bf8fff187fff5946251041fffff, 0xcff3fc7ffffdfffb5bff5a504a7ff4ffff3418bf3948087ff0ffdef77ddffb7ff, 0xcff3fc7ffffdfffb5bff5a504a7fffffff3418bf3948087ffffffef77ddf48fff, 0xcfff9c7fffffff7b7ff65a504ffff449cc2ffe5ffc7f187ff0fbdff51041fb7ff,
+  0xffff9ffff8fdff7fdbf65a504a7fff49cc2ffe5ffc7f161883fbfff77feefffff, 0xffff9ffff8fdff7fdbff5a504a7fff49cc2fffffffff1618835946277feefffff, 0xcffffc7ff8fdfffb5bff5a504a7fff49cc2fffff3948087fff5946277feefffff, 0xcfff9c7ffffdff7b5bff5a504a7ff449cc2418bfffff187ff0ffdff77ffffb7ff,
+  0xcff3fc7fffffeffb7ff65a504520e3ffe73fca5ffc7ff843fffbfefffddf48fff, 0xcfff9c7fffffef7b7ff65a504520e3ffe7ffca5ffc7f1843fffbfff51041fffff, 0xcfff9c7ff8ffef7b7fff5a504520e3ffe7ffcbffffff1843ff59462fffeefffff, 0xcfff9c7fffffef7b7fff5a504520e3ffe7ffcbffffff1843ff5946251041fffff,
+  0xfff39ffff8ffff7ffff65a504520e3ffff3ffe5ffc7f161883fbfefffdcefffff, 0xcff3fc7ff8ffeffb7fff5a504520e3ffe73fcbff39480843fffffefffdcefffff, 0xcffffc7ff8ffeffb7fff5a504520e3ffe7ffcbff39480843ff59462fffeefffff, 0xcfff9c7ff8ffff7b7ff65a504520e349cc2ffe5ffc7f187ffffbffffffeefffff,
+  0xfe7fffff1fffeff62925ffeb5fd29ffce7f94bff8fe3ffc21f59462fbbff48fff, 0xfe7f9fff1fffef762925ffebffd29ffce7f94bff8fff1fc3ff5946251041fffff, 0xfe73ffe31fbffff62925afebffd29ffcff397fff8ffff618837ffefffddf48fff, 0xfe7f9fe31fbfff762925afebffd29ffcfff97fff8fff1618837ffff51041fffff,
+  0xfe7f9fff18ffff762925ffebffd29ffcfff97fff8fff16188359462fffeefffff, 0xfe73ffe3ffbfeff62925afebffd3ffffe7394bff39480fc3ff7ffefffddf48fff, 0xfe7fffe3ffbfeff62925afebffd3ffffe7f94bff39480fc3ff7ffff5104148fff, 0xfff3ffe31fbffff62925afff5ffe9ffcff3418bf8fe3fffe1f7ffeffb9df48fff,
+  0xffff9fe31fbfff762925affffffe9ffcfff418bf8fff1618837ffff51041fffff, 0xfe7f9fe3ffbfff762925afebffd3f449cc297fffffff1ffff07fdff51041fb7ff, 0xfe7f9ffff8ffff762925ffeb5fd3ff49cc297fffffe31ffe1f59462fbbeefffff, 0xfe7f9fe3f8bfff762925afebffd3ff49cc297fffffff1618837fffffffeefffff,
+  0xfe7fffe3ffbffff62925afebffd3f449cc297fff39480ffff07fdff51041fb7ff, 0xfe7fffe3f8bffff62925afebffd3ff49cc297fff39480618837fffffffeefffff, 0xffff9fe3ffbfff762925afff5ffff449cc2418bfffe31ffe107fdfffbbfffb7ff, 0xffff9fe3ffbfff762925affffffff449cc2418bfffff1ffff07fdff51041fb7ff,
+  0xfff3ffe3ffbfeff62925afff5520e3ffe73fcbffffe3ffc21f7ffeffb9df48fff, 0xffff9ffff8ffef762925ffff5520e3ffe7ffcbffffe31fc21f59462fbbeefffff, 0xfff3ffe3f8bffff62925affff520e3ffff3fffff39480618837ffefffdcefffff, 0xffff9fff1fffef7629255a504ffe9ffce7ffcbff8fff1fc3ff5946251041fffff,
+  0xffff9fff18ffff7629255a504ffe9ffcffffffff8fff16188359462fffeefffff, 0xfff39fff1fffff7629255a504ffe94fcff3418bf8fff1ffff0ffdefffddffb7ff, 0xffff9fff1fffff7629255a504ffe94fcfff418bf8fff1ffff0ffdff51041fb7ff, 0xffff9ffff8ffef7629255a504520e3ffe7ffcbffffff1fc3ff59462fffeefffff,
+  0xfff39ffff8ffff7629255a504520e3ffff3fffffffff161883fffefffdcefffff, 0xfff3fffff8ffeff629255a504520e3ffe73fcbff39480fc3fffffefffdcefffff, 0xce7ffc7f1f5a8c0b7fffffeb5fd29ffcfff97fff8fe3f87e1f59462fbbff48fff, 0xce7ffc7f1f5a8c0b7edffd6bffd29f9cfff97fff8ffff87fff59462510416ffff,
+  0xce7ffc7f1f5a8c0b7fffffebffd29ffcfff97fff8ffff87fff594625104148fff, 0xfe73ffff1f5a8c0ffff6ffebffd29ffcff397e5f8c7ff61883fbfefffddf48fff, 0xfe7fffff1f5a8c0ffed6fd6bffd29f9cfff97e5f8c7ff61883fbfff510416ffff, 0xfe7fffff1f5a8c0ffff6ffebffd29ffcfff97e5f8c7ff61883fbfff5104148fff,
+  0xfe7fffff185a8c0ffedffd6bffd29f9cfff97fff8ffff6188359462fffee6ffff, 0xce7ffc7fff5a8c0b7edffd6bffd3f49ffff97fff3948087ff0ffdff510416b7ff, 0xce7ffc7fff5a8c0b7edffd6bffd3ff9ffff97fff3948087fff59462510416ffff, 0xfe73fffff85a8c0ffedffd6bffd3ff9fff397fff3948061883fffefffdce6ffff,
+  0xfe7ffffff85a8c0ffedffd6bffd3ff9ffff97fff394806188359462fffee6ffff, 0xcff3fc7f1f5a8c0b7fffffff5ffe9ffcff3418bf8fe3f87e1ffffeffb9df48fff, 0xcffffc7f1f5a8c0b7edffd7ffffe949cfff418bf8ffff87ff0ffdff510416b7ff, 0xcffffc7f1f5a8c0b7edffd7f5ffe9f9cfff418bf8fe3f87e1f59462fbbff6ffff,
+  0xcffffc7f1f5a8c0b7fffffff5ffe9ffcfff418bf8fe3f87e1f59462fbbff48fff, 0xcffffc7f1f5a8c0b7edffd7ffffe9f9cfff418bf8ffff87fff59462510416ffff, 0xcff3fc7fff5a8c0b7edffd7ffffff49fff3418bf3948087ff0ffdefffddf6b7ff, 0xcffffc7fff5a8c0b7edffd7ffffff49ffff418bf3948087ff0ffdff510416b7ff,
+  0xce7ffc7fff5a8c0b7ff6ffeb5fd3ff49cc297e5ffc63f87e1ffbffffbbff48fff, 0xce7ffc7fff5a8c0b7ff6ffebffd3f449cc297e5ffc7ff87ff0fbdff51041fb7ff, 0xce7ffc7fff5a8c0b7ff6ffebffd3ff49cc297e5ffc7ff87ffffbfff5104148fff, 0xce7ffc7ff85a8c0b7fffffebffd3f449cc297fff3948087ff0ffdfffffeefb7ff,
+  0xce7ffc7ff85a8c0b7fffffebffd3ff49cc297fff3948087fff59462fffeefffff, 0xcff3fc7fff5a8c0b7ff6ffff5520e3ffff3ffe5ffc63f87e1ffbfeffb9df48fff, 0xfff3fffff85a8c0ffed6fd7ff520e39fff3ffe5ffc7ff61883fbfefffdce6ffff, 0xcffffc7ff85a8c0b7edffd7ff520e39fffffffff3948087fff59462fffee6ffff,
+  0xcff3fc7fff5a8c0b7edffd7f5520e39fff3418bfffe3f87e1ffffeffb9df6ffff, 0xcffffc7ff85a8c0b7fffffff5520e349cc2fffffffe3f87e1f59462fbbeefffff, 0xcffffc7f1f5a8c0b7ff65a504ffe9ffcfffffe5f8c7ff87ffffbfff5104148fff, 0xfff3ffff185a8c0ffff65a504ffe9ffcff3ffe5f8c7ff61883fbfefffdcefffff,
+  0xcff3fc7f1f5a8c0b7fff5a504ffe94fcff3418bf8ffff87ff0ffdefffddffb7ff, 0xcff3fc7f1f5a8c0b7fff5a504ffe9ffcff3418bf8ffff87ffffffefffddf48fff, 0xcffffc7f1f5a8c0b7fff5a504ffe94fcfff418bf8ffff87ff0ffdff51041fb7ff, 0xcffffc7ff85a8c0b7ff65a504ffff449cc2ffe5ffc7ff87ff0fbdfffffeefb7ff,
+  0xcffffc7fff5a8c0b7ff65a504ffff449cc2ffe5ffc7ff87ff0fbdff51041fb7ff, 0xcffffc7ff85a8c0b7fff5a504ffff449cc2fffff3948087ff0ffdfffffeefb7ff, 0xcff3fc7ff85a8c0b7ff65a504520e3ffff3ffe5ffc7ff87ffffbfefffdcefffff, 0xcff3fc7ff85a8c0b7fff5a504520e3ffff3fffff3948087ffffffefffdcefffff,
+  0xfe73ffff1f5a8c062925ffeb5fd29ffcff397fff8fe3fffe1ffffeffb9df48fff, 0xfe7fffff185a8c062925ffebffd29ffcfff97fff8ffff6188359462fffeefffff, 0xfe73fffff85a8c062925ffebffd3ffffff397fff3948061883fffefffdcefffff, 0xfff3ffff1f5a8c062925ffff5ffe94fcff3418bf8fe3fffe10ffdeffb9dffb7ff,
+  0xfff3ffff1f5a8c062925ffff5ffe9ffcff3418bf8fe3fffe1ffffeffb9df48fff, 0xfe7ffffff85a8c062925ffeb5fd3f449cc297fffffe3fffe10ffdfffbbeefb7ff, 0xfe7ffffff85a8c062925ffeb5fd3ff49cc297fffffe3fffe1f59462fbbeefffff, 0xfe7ffffff85a8c062925ffebffd3f449cc297fff39480ffff0ffdfffffeefb7ff,
+  0xfff3ffff185a8c0629255a504ffe9ffcff3fffff8ffff61883fffefffdcefffff, 0xfff3fffff85a8c0629255a504ffff4ffff3fffff39480ffff0ffdefffdcefb7ff, 0xfe73f62ce1fdffffdbf6ffebfa53ffffff397e5ffc7ff61883fbfef77ddf48fff, 0xfe7f962ce1ffff7ffed6fd6bffd3ff9ffff97e5ffc7f161883fbfff510416ffff,
+  0xfe7f962ce1fdff7fdadffd6bfa53ff9ffff97fffffff1618835946277fff6ffff, 0xfe7f962ce1ffff7ffedffd6bffd3ff9ffff97fffffff16188359462510416ffff, 0xfe73f62ce1fdefffdbffffebfa53ffffe7394bff39480fc3fffffef77ddf48fff, 0xfe7ff62ce1ffeffffedffd6bffd3f49fe7f94bff39480fc3f0ffdff510416b7ff,
+  0xfe7ff62ce1fdefffdbffffebfa53ffffe7f94bff39480fc3ff5946277fff48fff, 0xfe7ff62ce1ffeffffedffd6bffd3ff9fe7f94bff39480fc3ff59462510416ffff, 0xfe73f62ce1fdffffdadffd6bfa53ff9fff397fff3948061883fffef77ddf6ffff, 0xfe7ff62ce1fdffffdadffd6bfa53ff9ffff97fff39480618835946277fff6ffff,
+  0xfff3962ce1fdff7fdadffd7ffa7fff9fff3418bfffff161883fffef77ddf6ffff, 0xffff962ce1fdff7fdadffd7ffa7fff9ffff418bfffff1618835946277fff6ffff, 0xfff3f62ce1fdffffdadffd7ffa7ff49fff3418bf39480ffff0ffdef77ddf6b7ff, 0xfe7ff62ce1fdffffdbf6ffeb5a53ff49cc297e5ffc63fffe1ffbfff73bff48fff,
+  0xfe7f962ce1ffff7ffff6ffebffd3f449cc297e5ffc7f1ffff0fbdff51041fb7ff, 0xfe7f962ce1fdff7fdbffffeb5a53ff49cc297fffffe31ffe1f5946273bfffffff, 0xffff962ce1fdff7fdbffffff5a7ff449cc2418bfffe31ffe10ffdff73bfffb7ff, 0xffff962ce1fdff7fdbffffff5a7fff49cc2418bfffe31ffe1f5946273bfffffff,
+  0xfff3f62ce1ffeffffff6ffff5520e3ffe73fca5ffc63ffc21ffbfeffb9df48fff, 0xffff962ce1ffef7ffed6fd7ff520e39fe7ffca5ffc7f1fc3fffbfff510416ffff, 0xffff962ce1ffef7ffedffd7ff520e39fe7ffcbffffff1fc3ff59462510416ffff, 0xfff3962ce1ffff7ffed6fd7ff520e39fff3ffe5ffc7f161883fbfefffddf6ffff,
+  0xfff3962ce1ffff7ffedffd7f5520e39fff3418bfffe31ffe1ffffeffb9df6ffff, 0xffff962ce1ffff7ffedffd7f5520e39ffff418bfffe31ffe1f59462fbbff6ffff, 0xfff3962ce1fdff7fdbf65a504a7fffffff3ffe5ffc7f161883fbfef77ddffffff, 0xfff3f62ce1fdefffdbff5a504a7fffffe73fcbff39480fc3fffffef77ddf48fff,
+  0xfff3962ce1fdff7fdbff5a504a7fffffff3418bfffff161883fffef77ddffffff, 0xfff3f62ce1fdffffdbff5a504a7ff4ffff3418bf39480ffff0ffdef77ddffb7ff, 0xffff962ce1fdff7fdbf65a504a7ff449cc2ffe5ffc7f1ffff0fbdff77ffffb7ff, 0xffff962ce1ffff7ffff65a504ffff449cc2ffe5ffc7f1ffff0fbdff51041fb7ff,
+  0xffff962ce1fdff7fdbff5a504a7ff449cc2418bfffff1ffff0ffdff77ffffb7ff, 0xfff3962ce1ffef7ffff65a504520e3ffe73fca5ffc7f1fc3fffbfefffddffffff, 0xffff962ce1ffef7ffff65a504520e3ffe7ffca5ffc7f1fc3fffbfff51041fffff, 0xfe73f62ce1ffeff62925ffeb5fd3ffffe7394bffffe3ffc21ffffeffb9df48fff,
+  0xfe7f962ce1ffef762925ffebffd3f4ffe7f94bffffff1fc3f0ffdff51041fb7ff, 0xfe7f962ce1ffef762925ffeb5fd3ffffe7f94bffffe31fc21f59462fbbfffffff, 0xfe7f962ce1ffef762925ffebffd3ffffe7f94bffffff1fc3ff5946251041fffff, 0xfe73f62ce1ffeff62925ffebffd3f4ffe7394bff39480fc3f0ffdefffddffb7ff,
+  0xfe7ff62ce1ffeff62925ffebffd3f4ffe7f94bff39480fc3f0ffdff51041fb7ff, 0xfff3962ce1ffff762925ffff5ffff4ffff3418bfffe31ffe10ffdeffb9dffb7ff, 0xfe7f962ce1ffff762925ffeb5fd3f449cc297fffffe31ffe10ffdfffbbfffb7ff, 0xffff962ce1ffef7629255a504ffff4ffe7ffcbffffff1fc3f0ffdff51041fb7ff,
+  0xfff3f62ce1ffeff629255a504ffff4ffe73fcbff39480fc3f0ffdefffddffb7ff, 0xfff3962ce1ffff7629255a504ffff4ffff3418bfffff1ffff0ffdefffddffb7ff, 0xfff3962ce1ffef7629255a504520e3ffe73fcbffffff1fc3fffffefffddffffff, 0xfe73f62ce15a8c0ffed6fd6bffd3ff9fff397e5ffc7ff61883fbfefffddf6ffff,
+  0xfe73f62ce15a8c0ffff6ffebffd3ffffff397e5ffc7ff61883fbfefffddf48fff, 0xfe7ff62ce15a8c0ffed6fd6bffd3ff9ffff97e5ffc7ff61883fbfff510416ffff, 0xfe73f62ce15a8c0ffedffd6bffd3f49fff397fff39480ffff0ffdefffddf6b7ff, 0xfe7ff62ce15a8c0ffedffd6bffd3f49ffff97fff39480ffff0ffdff510416b7ff,
+  0xfff3f62ce15a8c0ffedffd7ffffff49fff3418bf39480ffff0ffdefffddf6b7ff, 0xfe7ff62ce15a8c0ffff6ffeb5fd3f449cc297e5ffc63fffe10fbdfffbbfffb7ff, 0xfe7ff62ce15a8c0ffff6ffeb5fd3ff49cc297e5ffc63fffe1ffbffffbbff48fff, 0xfe7ff62ce15a8c0ffff6ffebffd3f449cc297e5ffc7ffffff0fbdff51041fb7ff,
+  0xfff3f62ce15a8c0ffed6fd7f5520e39fff3ffe5ffc63fffe1ffbfeffb9df6ffff, 0xfff3f62ce15a8c0ffff6ffff5520e3ffff3ffe5ffc63fffe1ffbfeffb9df48fff, 0xfff3f62ce15a8c0ffedffd7f5520e39fff3418bfffe3fffe1ffffeffb9df6ffff, 0xfe73f62ce15a8c062925ffeb5fd3f4ffff397fffffe3fffe10ffdeffb9dffb7ff,
+  0xfe73f62ce15a8c062925ffeb5fd3ffffff397fffffe3fffe1ffffeffb9df48fff, 0xfe73f62ce15a8c062925ffebffd3f4ffff397fff39480ffff0ffdefffddffb7ff, 0xfff3f62ce15a8c062925ffff5ffff4ffff3418bfffe3fffe10ffdeffb9dffb7ff, 0x62040fff1ffdefffdbffffff5a7e9ffce7ffcbff8fe3ffc21f5946273bff48fff,
+  0x62040fe31fbdffffdbf6affffa7e9ffcfffffe5f8c7ff618837bfff77fff48fff, 0x62040fe31fbffffffed6ad7ffffe9f9cfffffe5f8c7ff618837bfff510416ffff, 0x62040fe31fbffffffff6affffffe9ffcfffffe5f8c7ff618837bfff5104148fff, 0x62040ffff8fdffffdadffd7ffa7fff9fffffffff39480618835946277fee6ffff,
+  0x62040fe31fbdffffdbffafff5a7e9ffcfff418bf8fe3fffe1f7ffff73bff48fff, 0x62040fe31fbffffffedfad7ffffe949cfff418bf8ffffffff07fdff510416b7ff, 0x62040fff1ffdffffdadffd7f5a7e9f9cfff418bf8fe3fffe1f5946273bff6ffff, 0x62040fe31fbdffffdadfad7ffa7e9f9cfff418bf8ffff618837ffff77fff6ffff,
+  0x62040fe3ffbdffffdadfad7ffa7ff49ffff418bf39480ffff07fdff77fff6b7ff, 0x62040fe3ffbffffffedfad7ffffff49ffff418bf39480ffff07fdff510416b7ff, 0x62040fe3ffbdffffdbf6afff5a7fff49cc2ffe5ffc63fffe1f7bfff73bff48fff, 0x62040fe3f8bdffffdbffaffffa7fff49cc2fffff39480618837ffff77feefffff,
+  0x62040fe3ffbdffffdbffafff5a7ff449cc2418bfffe3fffe107fdff73bfffb7ff, 0x62040fe3ffbfeffffff6afff5520e3ffe7ffca5ffc63ffc21f7bffffbbff48fff, 0x62040fe3ffbfeffffed6ad7ff520e39fe7ffca5ffc7fffc3ff7bfff510416ffff, 0x62040fe3ffbfeffffff6affff520e3ffe7ffca5ffc7fffc3ff7bfff5104148fff,
+  0x62040ffff8ffeffffedffd7f5520e39fe7ffcbffffe3ffc21f59462fbbee6ffff, 0x62040fe3f8bffffffed6ad7ff520e39ffffffe5ffc7ff618837bffffffee6ffff, 0x62040fe3f8bfeffffedfad7ff520e39fe7ffcbff39480fc3ff7fffffffee6ffff, 0x62040fe3ffbfeffffedfad7ff520e39fe7ffcbff39480fc3ff7ffff510416ffff,
+  0x62040fff1ffdefffdbf65a504a7e9ffce7ffca5f8c7fffc3fffbfff77fff48fff, 0x62040fff1fffeffffff65a504ffe94fce7ffca5f8c7fffc3f0fbdff51041fb7ff, 0x62040fff1fffeffffff65a504ffe9ffce7ffca5f8c7fffc3fffbfff5104148fff, 0x62040fff18fdffffdbff5a504a7e9ffcffffffff8ffff618835946277feefffff,
+  0x62040ffff8fdefffdbff5a504a7fffffe7ffcbff39480fc3ff5946277feefffff, 0x62040ffff8fdffffdbf65a504a7ff449cc2ffe5ffc7ffffff0fbdff77feefb7ff, 0x62040ffff8fdffffdbff5a504a7ff449cc2fffff39480ffff0ffdff77feefb7ff, 0x62040fe31fbfeff62925afff5ffe9ffce7ffcbff8fe3ffc21f7fffffbbff48fff,
+  0x62040fe31fbfeff62925affffffe9ffce7ffcbff8fffffc3ff7ffff5104148fff, 0x62040fe3ffbfeff62925affffffff4ffe7ffcbff39480fc3f07fdff51041fb7ff, 0x62040fe31fbffff62925afff5ffe94fcfff418bf8fe3fffe107fdfffbbfffb7ff, 0x62040fe31fbffff62925affffffe94fcfff418bf8ffffffff07fdff51041fb7ff,
+  0x62040fe3f8bffff62925affffffff449cc2fffff39480ffff07fdfffffeefb7ff, 0x62040fe3f8bfeff62925affff520e3ffe7ffcbff39480fc3ff7fffffffeefffff, 0x62040fe3f8bffff62925afff5520e349cc2fffffffe3fffe1f7fffffbbeefffff, 0x62040fff18ffeff629255a504ffe94fce7ffcbff8fffffc3f0ffdfffffeefb7ff,
+  0x62040fff1fffeff629255a504ffe94fce7ffcbff8fffffc3f0ffdff51041fb7ff, 0x62040fff18ffeff629255a504ffe9ffce7ffcbff8fffffc3ff59462fffeefffff, 0x62040ffff8ffeff629255a504ffff4ffe7ffcbff39480fc3f0ffdfffffeefb7ff, 0x62040fff1f5a8c0ffed6fd7ffffe949cfffffe5f8c7ffffff0fbdff510416b7ff,
+  0x62040fff185a8c0ffed6fd7ffffe9f9cfffffe5f8c7ff61883fbffffffee6ffff, 0x62040fff1f5a8c0ffedffd7f5ffe949cfff418bf8fe3fffe10ffdfffbbff6b7ff, 0x62040ffff85a8c0ffff6ffff5ffff449cc2ffe5ffc63fffe10fbdfffbbeefb7ff, 0x62040ffff85a8c0ffed6fd7f5520e39ffffffe5ffc63fffe1ffbffffbbee6ffff,
+  0x62040ffff85a8c0ffedffd7f5520e39fffffffffffe3fffe1f59462fbbee6ffff, 0x62040fff185a8c0ffff65a504ffe94fcfffffe5f8c7ffffff0fbdfffffeefb7ff, 0x62040fff1f5a8c0ffff65a504ffe94fcfffffe5f8c7ffffff0fbdff51041fb7ff, 0x62040fff185a8c062925ffff5ffe9ffcffffffff8fe3fffe1f59462fbbeefffff,
+  0x62040fff185a8c0629255a504ffe94fcffffffff8ffffffff0ffdfffffeefb7ff, 0x6204062ce1fdefffdbf6ffff5a7fffffe7ffca5ffc63ffc21ffbfff73bff48fff, 0x6204062ce1ffeffffed6fd7ffffff49fe7ffca5ffc7fffc3f0fbdff510416b7ff, 0x6204062ce1fdefffdadffd7f5a7fff9fe7ffcbffffe3ffc21f5946273bff6ffff,
+  0x6204062ce1fdefffdbffffff5a7fffffe7ffcbffffe3ffc21f5946273bff48fff, 0x6204062ce1fdefffdadffd7ffa7ff49fe7ffcbff39480fc3f0ffdff77fff6b7ff, 0x6204062ce1fdefffdadffd7ffa7fff9fe7ffcbff39480fc3ff5946277fff6ffff, 0x6204062ce1fdffffdadffd7f5a7ff49ffff418bfffe3fffe10ffdff73bff6b7ff,
+  0x6204062ce1fdffffdbf6ffff5a7ff449cc2ffe5ffc63fffe10fbdff73bfffb7ff, 0x6204062ce1ffeffffed6fd7f5520e39fe7ffca5ffc63ffc21ffbffffbbff6ffff, 0x6204062ce1fdefffdbf65a504a7ff4ffe7ffca5ffc7fffc3f0fbdff77ffffb7ff, 0x6204062ce1fdefffdbf65a504a7fffffe7ffca5ffc7fffc3fffbfff77fff48fff,
+  0x6204062ce1ffeffffff65a504ffff4ffe7ffca5ffc7fffc3f0fbdff51041fb7ff]
+private def family1 : Family where
+  group := 0xafb700a9031c
+  indices := #[
+  0x1, 0x3, 0x4, 0x5,
+  0x7, 0x8, 0x9, 0xb,
+  0xc, 0xe, 0xf, 0x10,
+  0x11, 0x13, 0x15, 0x16,
+  0x19, 0x1b, 0x1e, 0x20,
+  0x21, 0x23, 0x25, 0x27,
+  0x28, 0x2a, 0x2b, 0x2c,
+  0x2f, 0x32, 0x34, 0x35,
+  0x38, 0x3b, 0x3c, 0x40,
+  0x45, 0x46, 0x47, 0x49,
+  0x4a, 0x4b, 0x4e, 0x52,
+  0x56, 0x5a, 0x5b, 0x5d,
+  0x5e, 0x5f, 0x63, 0x66,
+  0x6a, 0x6c, 0x6d, 0x6e,
+  0x6f, 0x70, 0x71, 0x77,
+  0x78, 0x79, 0x7b, 0x7d,
+  0x7e, 0x7f, 0x83, 0x86,
+  0x88, 0x89, 0x8a, 0x8b,
+  0x8c, 0x8d, 0x91, 0x92,
+  0x95, 0x96, 0x97, 0x99,
+  0x9a, 0x9d, 0x9e, 0x9f,
+  0xa0, 0xa2, 0xa4, 0xa6,
+  0xa7, 0xa8, 0xaa, 0xab,
+  0xae, 0xaf, 0xb0, 0xb2,
+  0xb4, 0xb5, 0xb6, 0xb9,
+  0xbb, 0xbc, 0xbe, 0xc1,
+  0xc2, 0xc4, 0xc5, 0xc7,
+  0xc8, 0xca, 0xcf, 0xd0,
+  0xd1, 0xd6, 0xda, 0xdc,
+  0xdd, 0xe0, 0xe1, 0xe2,
+  0xe7, 0xe8, 0xea, 0xec,
+  0xee, 0xf0, 0xf3, 0xf4,
+  0xf5, 0xf6, 0xf8, 0xf9,
+  0xfa, 0xfb, 0xff, 0x100,
+  0x101, 0x103, 0x104, 0x105,
+  0x106, 0x108, 0x10a, 0x10c,
+  0x10d, 0x10e, 0x111, 0x112,
+  0x113, 0x115, 0x117, 0x118,
+  0x119, 0x11a, 0x11d, 0x11f,
+  0x120, 0x122, 0x123, 0x126,
+  0x129, 0x12a, 0x12b, 0x130,
+  0x132, 0x134, 0x135, 0x136,
+  0x137, 0x13a, 0x13b, 0x140,
+  0x141, 0x142, 0x145, 0x147,
+  0x148, 0x14a, 0x14e, 0x14f,
+  0x150, 0x151, 0x156, 0x157,
+  0x158, 0x15a, 0x15c, 0x15d,
+  0x15e, 0x15f, 0x160, 0x163,
+  0x166, 0x168, 0x169, 0x16b,
+  0x16c, 0x16e, 0x16f, 0x170,
+  0x173, 0x174, 0x178, 0x17a,
+  0x17b, 0x17c, 0x17f, 0x180,
+  0x182, 0x185, 0x187, 0x188,
+  0x18a, 0x18b, 0x18c, 0x18d,
+  0x18e, 0x192, 0x195, 0x196,
+  0x197, 0x198, 0x19c, 0x19d,
+  0x19e, 0x1a0, 0x1a1, 0x1a2,
+  0x1a6, 0x1a7, 0x1a8, 0x1a9,
+  0x1ab, 0x1ac, 0x1ad, 0x1ae,
+  0x1af, 0x1b1, 0x1b5, 0x1b8,
+  0x1b9, 0x1bb, 0x1be, 0x1bf,
+  0x1c1, 0x1c2, 0x1c4, 0x1c5,
+  0x1c7, 0x1c8, 0x1c9, 0x1ca,
+  0x1cc, 0x1cd, 0x1ce, 0x1cf,
+  0x1d0]
+  negatives := #[
+  0x80169a0, 0x8027940, 0x2b540, 0x802d340,
+  0x32d04, 0x38702, 0x4b490, 0x52c84,
+  0x8054a81, 0x805c281, 0x63c04, 0x8065a08,
+  0x70e04, 0x8087920, 0x92d20, 0x8094921,
+  0xa3d00, 0x80a7900, 0xb0d02, 0xb8502,
+  0xc3c10, 0x80c9411, 0xe1c08, 0x80e5808,
+  0x8107860, 0x8114a21, 0x123844, 0x8125a40,
+  0x812d240, 0x8145a01, 0x814d201, 0x8150a05,
+  0x163804, 0x183830, 0x8185821, 0x8194821,
+  0x82070e0, 0x20b4c0, 0x820d0c1, 0x2124a4,
+  0x8218483, 0x223444, 0x243484, 0x824d081,
+  0x26140c, 0x8290423, 0x8298403, 0x2a9402,
+  0x82c1409, 0x82c5009, 0x8305061, 0x830d041,
+  0x329042, 0x8385021, 0x8389003, 0x8390023,
+  0x84069c0, 0x40a1d0, 0x840c1c1, 0x841c181,
+  0x422944, 0x8424948, 0x430906, 0x442894,
+  0x8444889, 0x8450885, 0x8488113, 0x8498103,
+  0x84a4908, 0x4b0902, 0x84c0819, 0x84c4809,
+  0x502854, 0x8508053, 0x530806, 0x8540815,
+  0x8580813, 0x8588013, 0x8590803, 0x86040c9,
+  0x86080c3, 0x8618083, 0x62004e, 0x864008d,
+  0x8644089, 0x8700047, 0x8710007, 0x88071a0,
+  0x80b190, 0x880d380, 0x8121a4, 0x88143a0,
+  0x881c380, 0x8825308, 0x829302, 0x830306,
+  0x843094, 0x8845288, 0x849290, 0x86120c,
+  0x883130, 0x8885128, 0x889112, 0x88a5108,
+  0x8a9102, 0x909212, 0x910226, 0x929202,
+  0x930206, 0x943014, 0x989012, 0xa030a4,
+  0x8a050a8, 0xa4108c, 0xa8102a, 0xaa100a,
+  0xb01026, 0xb21006, 0xb81022, 0xc02194,
+  0xc18182, 0xc2010e, 0xc4009c, 0xc8011a,
+  0xca010a, 0xe10086, 0x100a550, 0x900c341,
+  0x1012524, 0x9014321, 0x901c301, 0x1022544,
+  0x9024348, 0x1028740, 0x1032504, 0x1038700,
+  0x9048611, 0x9058601, 0x106060c, 0x1070604,
+  0x1082530, 0x9088511, 0x9090521, 0x9094121,
+  0x9098501, 0x90c0419, 0x9104261, 0x9108251,
+  0x910c241, 0x9114221, 0x9148211, 0x9150205,
+  0x1202464, 0x9204069, 0x122044c, 0x924040d,
+  0x9250405, 0x9280429, 0x9284029, 0x9300065,
+  0x9310025, 0x1402154, 0x9404149, 0x1422144,
+  0x944001d, 0x9484109, 0x9488111, 0x94c0019,
+  0x9500055, 0x9540015, 0x960004d, 0x1802134,
+  0x9804328, 0x1810324, 0x182030c, 0x1830304,
+  0x184021c, 0x1880138, 0x1902034, 0x1910224,
+  0x1940214, 0x1c0011c, 0xa0068e0, 0x200a4d0,
+  0x2012ca0, 0xa0168a0, 0xa024a48, 0x2028642,
+  0x2030e02, 0x2038602, 0x2042c90, 0x204a490,
+  0xa054a80, 0x2060e08, 0xa064a08, 0x2082c30,
+  0x2090c22, 0x20a0c0a, 0x20b0c02, 0x20c0c18,
+  0x2102870, 0xa104a60, 0xa114a20, 0xa124a40,
+  0x2128242, 0x2130a02, 0x2190822, 0x22024e0,
+  0xa2060e0, 0x22104a2, 0x2218482, 0x222044a,
+  0x228042a, 0x2290422, 0x22a040a, 0x24028d0,
+  0xa4048c8, 0x242084a, 0x2442890, 0xa444888,
+  0x248081a, 0x24a080a, 0x2508052, 0x2520842,
+  0x2580812, 0xa6040c8, 0x26080c2, 0x262004a,
+  0xa8142a0, 0x2818282, 0x2840298, 0xa844288,
+  0x288003a, 0x2900232, 0x2908212, 0x2910222,
+  0x2980032, 0xaa040a8, 0x2c08092, 0x2e0008a,
+  0x3002470, 0x3008650, 0xb024248, 0x3028640,
+  0x3048610, 0x3060608, 0x3082430, 0x30c0418,
+  0x3102070, 0xb104260, 0x3108250, 0x3200468,
+  0xb204068, 0x3220448, 0x3280428, 0x3800238,
+  0xb804228]
+  boards := #[
+  0x7f5faffe30680000000007bfacf0cef694ce2208300, 0xdf2df27e707038000000000000003b7c5f40c067762c40d0e100000c0020, 0x3def1b9d800c4926b2b409846c0d02d000168184001490, 0x1f8a4a1ca3b5800a6042354b46e0204101e0f00aa201c80d12003100000c00800,
+  0x85d3574154800188c0b70bd2004a31004c80625501003b448200000200300040, 0x1db413b100033c718034e3801e324d003005584300c80000000a4209e0300e001, 0x3f0f000ec3899b000cc0050e871c0038c000000000258300371c02701d00000e, 0xe0f60d878001c3c0000000000000258380071f9b80038f000df0000003c1,
+  0x22f86e0001f0ffdb8001f0ff80003c7f000000000fe03f, 0x1863e0ef000003e073c19f00000fc0fb680001e0efa00000000000000fa001b28, 0x68fb0000007e80faf98000003d037fe940000000000000000001f7a0007d54f4, 0x1bf806fff57400000000000000000000000005df3f100000fafd7fd93,
+  0x7febff63800000007f9e777df32c4e, 0x141000004818108c3c4080a010010494080a01105800100930006b3051364d7, 0x11204209209010e050640102442348016800100a23a9080912d2e085c7b82ab0b, 0x41a442440041000a8800040005923a4c1004b445303220c0e58c9605028026c,
+  0x830002664513308a00110a1cac7210014009c42442a48806188820cd3b1, 0x202c0008a24838663c00c00804000cf812281988e0040430701092011ccf1c3e, 0xb000c00c000087c011029018c20f000402200f001808c380031c01e0f01fc0, 0x40c01101307040f8000200e06003f000184c41f0000070fc00e3e00e00ffe000,
+  0x7001e01c0007f00001c030180fc000000707e0000607f0000fc000fff000000, 0x7800a00e007f800000000401ff000000207f8000007f800000fffff000000000, 0xc00fff800000002007fe000000003f800000007fffffff00000000000000, 0x18000fff000000000003ff800000000003fffffffff8000000000000000000000,
+  0x1ffff000000000000003fffffffffffffc0000000000000000000000000000000, 0x1ffffffffffffffffffc000000000000000000000000000000000000000000000]
+  minima := #[
+  0x8000001, 0x2, 0x4, 0x8,
+  0x10, 0x20, 0x40, 0x80,
+  0x100, 0x200, 0x400, 0x800,
+  0x1000, 0x2000, 0x8004000, 0x8000,
+  0x10000, 0x20000, 0x40000, 0x80000,
+  0x100000, 0x200000, 0x400000, 0x800000,
+  0x1000000, 0x2000000]
+  choices := #[
+  0xfe7fffe31fbffffffff6afebffd29ffcfff97e5f8c7ff618837bfff5104148fff, 0xce7ffc63ffbfeffb7fffafebffd3ffffe7f94bff39480843ff7ffff5104148fff, 0xce7ffc7ffffdeffb5bffffebfa53ffffe7f94bff39480843ff5946277fff48fff, 0xce7ffc7fffffeffb7edffd6bffd3ff9fe7f94bff39480843ff59462510416ffff,
+  0xfe73ffe3ffbdffffdbffafebfa53ffffff397fff39480618837ffef77ddf48fff, 0xfe7ffffff8fdffffdadffd6bfa53ff9ffff97fff39480618835946277fee6ffff, 0xcffffc7f1ffdfffb5bffffff5a7e9ffcfff418bf8fe3f87e1f5946273bff48fff, 0xfff3ffe31fbdffffdbffaffffa7e9ffcff3418bf8ffff618837ffef77ddf48fff,
+  0xffff9fe31fbfff7ffedfad7ffffe9f9cfff418bf8fff1618837ffff510416ffff, 0xffff9fff1fffff7ffedffd7ffffe9f9cfff418bf8fff16188359462510416ffff, 0xcff3fc63ffbdfffb5bffaffffa7fffffff3418bf3948087fff7ffef77ddf48fff, 0xcffffc63ffbffffb7edfad7ffffff49ffff418bf3948087ff07fdff510416b7ff,
+  0xfff3ffe3ffbdffffdadfad7ffa7fff9fff3418bf39480618837ffef77ddf6ffff, 0xce7ffc63ffbffffb7ff6afebffd3ff49cc297e5ffc7ff87fff7bfff5104148fff, 0xfe7fffe3ffbdffffdbf6afebfa53ff49cc297e5ffc7ff618837bfff77fff48fff, 0xfe7f9fe3ffbfff7ffff6afebffd3ff49cc297e5ffc7f1618837bfff51041fffff,
+  0xce7ffc63ffbdfffb5bffafebfa53ff49cc297fff3948087fff7ffff77fff48fff, 0xce7ffc63ffbffffb7fffafebffd3ff49cc297fff3948087fff7ffff5104148fff, 0xfe7fffe3f8bdffffdbffafebfa53ff49cc297fff39480618837ffff77feefffff, 0xfe7ffffff8fdffffdbffffebfa53ff49cc297fff39480618835946277feefffff,
+  0xcffffc63ffbdfffb5bffafff5a7fff49cc2418bfffe3f87e1f7ffff73bff48fff, 0xcfff9c7ffffdff7b5bffffff5a7fff49cc2418bfffe3187e1f5946273bfffffff, 0xcffffc63ffbdfffb5bffaffffa7ff449cc2418bf3948087ff07fdff77ffffb7ff, 0xcffffc63ffbffffb7fffaffffffff449cc2418bf3948087ff07fdff51041fb7ff,
+  0xcffffc63ffbfeffb7ff6affff520e3ffe7ffca5ffc7ff843ff7bfff5104148fff, 0xffff9fe3ffbfff7ffed6ad7ff520e39ffffffe5ffc7f1618837bfff510416ffff, 0xcff3fc63ffbfeffb7fffaffff520e3ffe73fcbff39480843ff7ffefffddf48fff, 0xcffffc63ffbfeffb7edfad7ff520e39fe7ffcbff39480843ff7ffff510416ffff,
+  0xcffffc7fffffeffb7edffd7ff520e39fe7ffcbff39480843ff59462510416ffff, 0xcfff9c63ffbfff7b7edfad7ff520e39ffff418bfffff187fff7ffff510416ffff, 0xcfff9c7fffffff7b7edffd7ff520e39ffff418bfffff187fff59462510416ffff, 0xfff39fe3ffbfff7ffedfad7ff520e39fff3418bfffff1618837ffefffddf6ffff,
+  0xcff3fc63ffbffffb7fffaffff520e3ffff3418bf3948087fff7ffefffddf48fff, 0xcffffc63ffbffffb7ff6afff5520e349cc2ffe5ffc63f87e1f7bffffbbff48fff, 0xcfff9c63ffbfff7b7ff6affff520e349cc2ffe5ffc7f187fff7bfff51041fffff, 0xffff9fe3ffbfff7ffff6affff520e349cc2ffe5ffc7f1618837bfff51041fffff,
+  0xcffffc7f1fffeffb7ff65a504ffe9ffce7ffca5f8c7ff843fffbfff5104148fff, 0xcffffc7f1ffdeffb5bff5a504a7e9ffce7ffcbff8ffff843ff5946277fff48fff, 0xcfff9c7f1fffef7b7fff5a504ffe9ffce7ffcbff8fff1843ff5946251041fffff, 0xfff3ffff1ffdffffdbf65a504a7e9ffcff3ffe5f8c7ff61883fbfef77ddf48fff,
+  0xffff9fff18fdff7fdbff5a504a7e9ffcffffffff8fff1618835946277feefffff, 0xcff3fc7ffffdeffb5bff5a504a7fffffe73fcbff39480843fffffef77ddf48fff, 0xcff3fc7f1ffdfffb5bff5a504a7e9ffcff3418bf8ffff87ffffffef77ddf48fff, 0xcfff9c7f1fffff7b7fff5a504ffe9ffcfff418bf8fff187fff5946251041fffff,
+  0xcff3fc7ffffdfffb5bff5a504a7ff4ffff3418bf3948087ff0ffdef77ddffb7ff, 0xffff9ffff8fdff7fdbf65a504a7fff49cc2ffe5ffc7f161883fbfff77feefffff, 0xffff9ffff8fdff7fdbff5a504a7fff49cc2fffffffff1618835946277feefffff, 0xcffffc7ff8fdfffb5bff5a504a7fff49cc2fffff3948087fff5946277feefffff,
+  0xcfff9c7ffffdff7b5bff5a504a7ff449cc2418bfffff187ff0ffdff77ffffb7ff, 0xcfff9c7fffffff7b7fff5a504ffff449cc2418bfffff187ff0ffdff51041fb7ff, 0xcfff9c7fffffef7b7ff65a504520e3ffe7ffca5ffc7f1843fffbfff51041fffff, 0xcfff9c7fffffef7b7fff5a504520e3ffe7ffcbffffff1843ff5946251041fffff,
+  0xcffffc7ff8ffeffb7fff5a504520e3ffe7ffcbff39480843ff59462fffeefffff, 0xcfff9c7fffffff7b7ff65a504520e349cc2ffe5ffc7f187ffffbfff51041fffff, 0xcfff9c7ff8ffff7b7fff5a504520e349cc2fffffffff187fff59462fffeefffff, 0xffff9ffff8ffff7ffff65a504520e349cc2ffe5ffc7f161883fbffffffeefffff,
+  0xfe7fffe31fbfeff62925afebffd29ffce7f94bff8fffffc3ff7ffff5104148fff, 0xfe7fffff1fffeff62925ffeb5fd29ffce7f94bff8fe3ffc21f59462fbbff48fff, 0xfe7f9fff1fffef762925ffebffd29ffce7f94bff8fff1fc3ff5946251041fffff, 0xfe7f9fff1fffff762925ffebffd29ffcfff97fff8fff1618835946251041fffff,
+  0xfe73ffe3ffbfeff62925afebffd3ffffe7394bff39480fc3ff7ffefffddf48fff, 0xfe7fffe3ffbfeff62925afebffd3f4ffe7f94bff39480fc3f07fdff51041fb7ff, 0xfe73ffe3f8bffff62925afebffd3ffffff397fff39480618837ffefffdcefffff, 0xfff3ffe31fbffff62925afff5ffe9ffcff3418bf8fe3fffe1f7ffeffb9df48fff,
+  0xffff9fe31fbfff762925affffffe94fcfff418bf8fff1ffff07fdff51041fb7ff, 0xfff39fe31fbfff762925affffffe9ffcff3418bf8fff1618837ffefffddffffff, 0xfe7f9ffff8ffff762925ffeb5fd3ff49cc297fffffe31ffe1f59462fbbeefffff, 0xfe7f9ffff8ffff762925ffebffd3ff49cc297fffffff16188359462fffeefffff,
+  0xfe7fffe3ffbffff62925afebffd3f449cc297fff39480ffff07fdff51041fb7ff, 0xfe7fffe3f8bffff62925afebffd3ff49cc297fff39480618837fffffffeefffff, 0xffff9fe3ffbfff762925afff5ffff449cc2418bfffe31ffe107fdfffbbfffb7ff, 0xffff9fe3ffbfff762925affffffff449cc2418bfffff1ffff07fdff51041fb7ff,
+  0xfff3ffe3ffbfeff62925afff5520e3ffe73fcbffffe3ffc21f7ffeffb9df48fff, 0xffff9ffff8ffef762925ffff5520e3ffe7ffcbffffe31fc21f59462fbbeefffff, 0xfff3ffe3f8bffff62925affff520e3ffff3fffff39480618837ffefffdcefffff, 0xfff39fe3ffbfff762925afff5520e3ffff3418bfffe31ffe1f7ffeffb9dffffff,
+  0xffff9fe3f8bfff762925afff5520e349cc2fffffffe31ffe1f7fffffbbeefffff, 0xffff9ffff8ffff762925ffff5520e349cc2fffffffe31ffe1f59462fbbeefffff, 0xffff9fe3f8bfff762925affff520e349cc2fffffffff1618837fffffffeefffff, 0xffff9fff1fffef7629255a504ffe94fce7ffcbff8fff1fc3f0ffdff51041fb7ff,
+  0xffff9fff18ffef7629255a504ffe9ffce7ffcbff8fff1fc3ff59462fffeefffff, 0xffff9fff18ffff7629255a504ffe9ffcffffffff8fff16188359462fffeefffff, 0xfff3fffff8ffeff629255a504ffff4ffe73fcbff39480fc3f0ffdefffdcefb7ff, 0xfff39fff1fffff7629255a504ffe94fcff3418bf8fff1ffff0ffdefffddffb7ff,
+  0xffff9fff1fffff7629255a504ffe94fcfff418bf8fff1ffff0ffdff51041fb7ff, 0xfff39ffff8ffef7629255a504520e3ffe73fcbffffff1fc3fffffefffdcefffff, 0xfff39ffff8ffff7629255a504520e3ffff3fffffffff161883fffefffdcefffff, 0xce7ffc7f1f5a8c0b7ff6ffebffd29ffcfff97e5f8c7ff87ffffbfff5104148fff,
+  0xce7ffc7f1f5a8c0b7fffffeb5fd29ffcfff97fff8fe3f87e1f59462fbbff48fff, 0xce7ffc7f1f5a8c0b7edffd6bffd29f9cfff97fff8ffff87fff59462510416ffff, 0xfe73ffff1f5a8c0ffff6ffebffd29ffcff397e5f8c7ff61883fbfefffddf48fff, 0xfe7fffff1f5a8c0ffed6fd6bffd29f9cfff97e5f8c7ff61883fbfff510416ffff,
+  0xfe7fffff1f5a8c0ffedffd6bffd29f9cfff97fff8ffff6188359462510416ffff, 0xce7ffc7fff5a8c0b7edffd6bffd3f49ffff97fff3948087ff0ffdff510416b7ff, 0xce7ffc7ff85a8c0b7edffd6bffd3ff9ffff97fff3948087fff59462fffee6ffff, 0xfe73fffff85a8c0ffedffd6bffd3ff9fff397fff3948061883fffefffdce6ffff,
+  0xcff3fc7f1f5a8c0b7fffffff5ffe9ffcff3418bf8fe3f87e1ffffeffb9df48fff, 0xcffffc7f1f5a8c0b7edffd7ffffe949cfff418bf8ffff87ff0ffdff510416b7ff, 0xcffffc7f1f5a8c0b7edffd7f5ffe9f9cfff418bf8fe3f87e1f59462fbbff6ffff, 0xcff3fc7fff5a8c0b7edffd7ffffff49fff3418bf3948087ff0ffdefffddf6b7ff,
+  0xce7ffc7fff5a8c0b7ff6ffeb5fd3ff49cc297e5ffc63f87e1ffbffffbbff48fff, 0xce7ffc7fff5a8c0b7ff6ffebffd3f449cc297e5ffc7ff87ff0fbdff51041fb7ff, 0xce7ffc7ff85a8c0b7fffffeb5fd3ff49cc297fffffe3f87e1f59462fbbeefffff, 0xce7ffc7fff5a8c0b7fffffebffd3f449cc297fff3948087ff0ffdff51041fb7ff,
+  0xce7ffc7ff85a8c0b7fffffebffd3ff49cc297fff3948087fff59462fffeefffff, 0xcffffc7ff85a8c0b7edffd7f5520e39fffffffffffe3f87e1f59462fbbee6ffff, 0xfff3fffff85a8c0ffed6fd7ff520e39fff3ffe5ffc7ff61883fbfefffdce6ffff, 0xcffffc7ff85a8c0b7edffd7ff520e39fffffffff3948087fff59462fffee6ffff,
+  0xfff3fffff85a8c0ffedffd7ff520e39fff3fffff3948061883fffefffdce6ffff, 0xcff3fc7fff5a8c0b7fffffff5520e3ffff3418bfffe3f87e1ffffeffb9df48fff, 0xcffffc7ff85a8c0b7fffffff5520e349cc2fffffffe3f87e1f59462fbbeefffff, 0xcff3fc7f1f5a8c0b7ff65a504ffe9ffcff3ffe5f8c7ff87ffffbfefffddf48fff,
+  0xcffffc7f1f5a8c0b7ff65a504ffe94fcfffffe5f8c7ff87ff0fbdff51041fb7ff, 0xcff3fc7f1f5a8c0b7fff5a504ffe94fcff3418bf8ffff87ff0ffdefffddffb7ff, 0xcffffc7ff85a8c0b7ff65a504ffff449cc2ffe5ffc7ff87ff0fbdfffffeefb7ff, 0xcffffc7ff85a8c0b7fff5a504ffff449cc2fffff3948087ff0ffdfffffeefb7ff,
+  0xcff3fc7ff85a8c0b7ff65a504520e3ffff3ffe5ffc7ff87ffffbfefffdcefffff, 0xcff3fc7ff85a8c0b7fff5a504520e3ffff3fffff3948087ffffffefffdcefffff, 0xcffffc7ff85a8c0b7ff65a504520e349cc2ffe5ffc7ff87ffffbffffffeefffff, 0xfe73ffff1f5a8c062925ffeb5fd29ffcff397fff8fe3fffe1ffffeffb9df48fff,
+  0xfe7fffff185a8c062925ffebffd29ffcfff97fff8ffff6188359462fffeefffff, 0xfe73fffff85a8c062925ffebffd3f4ffff397fff39480ffff0ffdefffdcefb7ff, 0xfff3ffff1f5a8c062925ffff5ffe94fcff3418bf8fe3fffe10ffdeffb9dffb7ff, 0xfe7ffffff85a8c062925ffeb5fd3f449cc297fffffe3fffe10ffdfffbbeefb7ff,
+  0xfe7ffffff85a8c062925ffebffd3f449cc297fff39480ffff0ffdfffffeefb7ff, 0xfff3ffff185a8c0629255a504ffe9ffcff3fffff8ffff61883fffefffdcefffff, 0xfe7ff62ce1fdefffdbffffeb5a53ffffe7f94bffffe3ffc21f5946273bff48fff, 0xfe7f962ce1ffef7ffedffd6bffd3ff9fe7f94bffffff1fc3ff59462510416ffff,
+  0xfe73f62ce1fdffffdbf6ffebfa53ffffff397e5ffc7ff61883fbfef77ddf48fff, 0xfe7f962ce1ffff7ffed6fd6bffd3ff9ffff97e5ffc7f161883fbfff510416ffff, 0xfe7f962ce1ffff7ffedffd6bffd3ff9ffff97fffffff16188359462510416ffff, 0xfe73f62ce1fdefffdbffffebfa53ffffe7394bff39480fc3fffffef77ddf48fff,
+  0xfe7ff62ce1ffeffffedffd6bffd3f49fe7f94bff39480fc3f0ffdff510416b7ff, 0xfe7ff62ce1fdefffdadffd6bfa53ff9fe7f94bff39480fc3ff5946277fff6ffff, 0xfe73f62ce1fdffffdbffffebfa53ffffff397fff3948061883fffef77ddf48fff, 0xfe7ff62ce1fdffffdadffd6bfa53ff9ffff97fff39480618835946277fff6ffff,
+  0xffff962ce1fdff7fdadffd7f5a7fff9ffff418bfffe31ffe1f5946273bff6ffff, 0xffff962ce1fdff7fdadffd7ffa7fff9ffff418bfffff1618835946277fff6ffff, 0xfff3f62ce1fdffffdadffd7ffa7ff49fff3418bf39480ffff0ffdef77ddf6b7ff, 0xfff3f62ce1fdffffdadffd7ffa7fff9fff3418bf3948061883fffef77ddf6ffff,
+  0xfe7ff62ce1fdffffdbf6ffeb5a53ff49cc297e5ffc63fffe1ffbfff73bff48fff, 0xfe7f962ce1fdff7fdbffffeb5a53ff49cc297fffffe31ffe1f5946273bfffffff, 0xfe7f962ce1fdff7fdbf6ffebfa53ff49cc297e5ffc7f161883fbfff77ffffffff, 0xfe7f962ce1ffff7ffff6ffebffd3ff49cc297e5ffc7f161883fbfff51041fffff,
+  0xfe7f962ce1fdff7fdbffffebfa53ff49cc297fffffff1618835946277ffffffff, 0xffff962ce1fdff7fdbffffff5a7ff449cc2418bfffe31ffe10ffdff73bfffb7ff, 0xffff962ce1ffef7ffed6fd7ff520e39fe7ffca5ffc7f1fc3fffbfff510416ffff, 0xffff962ce1ffef7ffedffd7f5520e39fe7ffcbffffe31fc21f59462fbbff6ffff,
+  0xffff962ce1ffef7ffedffd7ff520e39fe7ffcbffffff1fc3ff59462510416ffff, 0xffff962ce1ffff7ffed6fd7ff520e39ffffffe5ffc7f161883fbfff510416ffff, 0xffff962ce1ffff7ffedffd7f5520e39ffff418bfffe31ffe1f59462fbbff6ffff, 0xfff3962ce1ffff7ffedffd7ff520e39fff3418bfffff161883fffefffddf6ffff,
+  0xfff3f62ce1fdefffdbf65a504a7fffffe73fca5ffc7fffc3fffbfef77ddf48fff, 0xffff962ce1ffef7ffff65a504ffff4ffe7ffca5ffc7f1fc3f0fbdff51041fb7ff, 0xfff3f62ce1fdefffdbff5a504a7ff4ffe73fcbff39480fc3f0ffdef77ddffb7ff, 0xfff3962ce1fdff7fdbff5a504a7ff4ffff3418bfffff1ffff0ffdef77ddffb7ff,
+  0xfff3962ce1fdff7fdbff5a504a7fffffff3418bfffff161883fffef77ddffffff, 0xffff962ce1fdff7fdbf65a504a7ff449cc2ffe5ffc7f1ffff0fbdff77ffffb7ff, 0xffff962ce1ffff7ffff65a504ffff449cc2ffe5ffc7f1ffff0fbdff51041fb7ff, 0xfff3962ce1ffef7ffff65a504520e3ffe73fca5ffc7f1fc3fffbfefffddffffff,
+  0xfff3962ce1ffff7ffff65a504520e3ffff3ffe5ffc7f161883fbfefffddffffff, 0xfe73f62ce1ffeff62925ffeb5fd3ffffe7394bffffe3ffc21ffffeffb9df48fff, 0xfe7f962ce1ffef762925ffebffd3f4ffe7f94bffffff1fc3f0ffdff51041fb7ff, 0xfe73f62ce1ffeff62925ffebffd3ffffe7394bff39480fc3fffffefffddf48fff,
+  0xfff3962ce1ffff762925ffff5ffff4ffff3418bfffe31ffe10ffdeffb9dffb7ff, 0xfe7f962ce1ffff762925ffebffd3f449cc297fffffff1ffff0ffdff51041fb7ff, 0xfe7f962ce1ffff762925ffeb5fd3ff49cc297fffffe31ffe1f59462fbbfffffff, 0xffff962ce1ffff762925ffff5ffff449cc2418bfffe31ffe10ffdfffbbfffb7ff,
+  0xfff3962ce1ffef762925ffff5520e3ffe73fcbffffe31fc21ffffeffb9dffffff, 0xfff3962ce1ffff762925ffff5520e3ffff3418bfffe31ffe1ffffeffb9dffffff, 0xfff3962ce1ffef7629255a504ffff4ffe73fcbffffff1fc3f0ffdefffddffb7ff, 0xfe73f62ce15a8c0ffff6ffeb5fd3ffffff397e5ffc63fffe1ffbfeffb9df48fff,
+  0xfe7ff62ce15a8c0ffed6fd6bffd3f49ffff97e5ffc7ffffff0fbdff510416b7ff, 0xfe73f62ce15a8c0ffed6fd6bffd3ff9fff397e5ffc7ff61883fbfefffddf6ffff, 0xfe73f62ce15a8c0ffedffd6bffd3f49fff397fff39480ffff0ffdefffddf6b7ff, 0xfe73f62ce15a8c0ffedffd6bffd3ff9fff397fff3948061883fffefffddf6ffff,
+  0xfff3f62ce15a8c0ffedffd7f5ffff49fff3418bfffe3fffe10ffdeffb9df6b7ff, 0xfe7ff62ce15a8c0ffff6ffeb5fd3f449cc297e5ffc63fffe10fbdfffbbfffb7ff, 0xfff3f62ce15a8c0ffff6ffff5520e3ffff3ffe5ffc63fffe1ffbfeffb9df48fff, 0xfff3f62ce15a8c0ffed6fd7ff520e39fff3ffe5ffc7ff61883fbfefffddf6ffff,
+  0xfff3f62ce15a8c0ffedffd7f5520e39fff3418bfffe3fffe1ffffeffb9df6ffff, 0xfe73f62ce15a8c062925ffeb5fd3f4ffff397fffffe3fffe10ffdeffb9dffb7ff, 0x62040fe31fbfeffffff6affffffe9ffce7ffca5f8c7fffc3ff7bfff5104148fff, 0x62040fff1ffdefffdbffffff5a7e9ffce7ffcbff8fe3ffc21f5946273bff48fff,
+  0x62040fe31fbdffffdbf6affffa7e9ffcfffffe5f8c7ff618837bfff77fff48fff, 0x62040fe31fbffffffff6affffffe9ffcfffffe5f8c7ff618837bfff5104148fff, 0x62040fe3ffbfeffffedfad7ffffff49fe7ffcbff39480fc3f07fdff510416b7ff, 0x62040ffff8fdefffdadffd7ffa7fff9fe7ffcbff39480fc3ff5946277fee6ffff,
+  0x62040fe3f8bdffffdadfad7ffa7fff9fffffffff39480618837ffff77fee6ffff, 0x62040ffff8fdffffdadffd7ffa7fff9fffffffff39480618835946277fee6ffff, 0x62040fe31fbdffffdbffafff5a7e9ffcfff418bf8fe3fffe1f7ffff73bff48fff, 0x62040fff1ffdffffdbffffff5a7e9ffcfff418bf8fe3fffe1f5946273bff48fff,
+  0x62040fe31fbffffffedfad7ffffe9f9cfff418bf8ffff618837ffff510416ffff, 0x62040fe3ffbdffffdadfad7ffa7ff49ffff418bf39480ffff07fdff77fff6b7ff, 0x62040fe3ffbffffffedfad7ffffff49ffff418bf39480ffff07fdff510416b7ff, 0x62040fe3ffbdffffdbf6afff5a7fff49cc2ffe5ffc63fffe1f7bfff73bff48fff,
+  0x62040fe3f8bdffffdbf6affffa7fff49cc2ffe5ffc7ff618837bfff77feefffff, 0x62040fe3f8bdffffdbffaffffa7ff449cc2fffff39480ffff07fdff77feefb7ff, 0x62040fe3f8bdffffdbffaffffa7fff49cc2fffff39480618837ffff77feefffff, 0x62040fe3ffbdffffdbffafff5a7ff449cc2418bfffe3fffe107fdff73bfffb7ff,
+  0x62040fe3ffbfeffffff6afff5520e3ffe7ffca5ffc63ffc21f7bffffbbff48fff, 0x62040fe3ffbfeffffed6ad7ff520e39fe7ffca5ffc7fffc3ff7bfff510416ffff, 0x62040fe3ffbffffffed6ad7ff520e39ffffffe5ffc7ff618837bfff510416ffff, 0x62040fe3ffbfeffffedfad7ff520e39fe7ffcbff39480fc3ff7ffff510416ffff,
+  0x62040ffff8ffeffffedffd7ff520e39fe7ffcbff39480fc3ff59462fffee6ffff, 0x62040fe3f8bffffffedfad7ff520e39fffffffff39480618837fffffffee6ffff, 0x62040fe3f8bffffffff6affff520e349cc2ffe5ffc7ff618837bffffffeefffff, 0x62040fff1ffdefffdbf65a504a7e9ffce7ffca5f8c7fffc3fffbfff77fff48fff,
+  0x62040fff1fffeffffff65a504ffe9ffce7ffca5f8c7fffc3fffbfff5104148fff, 0x62040fff18fdffffdbf65a504a7e9ffcfffffe5f8c7ff61883fbfff77feefffff, 0x62040fff18fdffffdbff5a504a7e9ffcffffffff8ffff618835946277feefffff, 0x62040ffff8fdefffdbff5a504a7ff4ffe7ffcbff39480fc3f0ffdff77feefb7ff,
+  0x62040ffff8fdffffdbf65a504a7ff449cc2ffe5ffc7ffffff0fbdff77feefb7ff, 0x62040ffff8fdffffdbf65a504a7fff49cc2ffe5ffc7ff61883fbfff77feefffff, 0x62040ffff8fdffffdbff5a504a7ff449cc2fffff39480ffff0ffdff77feefb7ff, 0x62040fe31fbfeff62925afff5ffe9ffce7ffcbff8fe3ffc21f7fffffbbff48fff,
+  0x62040fe31fbfeff62925affffffe94fce7ffcbff8fffffc3f07fdff51041fb7ff, 0x62040fe3f8bfeff62925affffffff4ffe7ffcbff39480fc3f07fdfffffeefb7ff, 0x62040fe31fbffff62925afff5ffe9ffcfff418bf8fe3fffe1f7fffffbbff48fff, 0x62040fe31fbffff62925affffffe94fcfff418bf8ffffffff07fdff51041fb7ff,
+  0x62040fe3f8bffff62925afff5ffff449cc2fffffffe3fffe107fdfffbbeefb7ff, 0x62040fe3f8bffff62925affffffff449cc2fffff39480ffff07fdfffffeefb7ff, 0x62040ffff8ffeff62925ffff5520e3ffe7ffcbffffe3ffc21f59462fbbeefffff, 0x62040fe3f8bfeff62925affff520e3ffe7ffcbff39480fc3ff7fffffffeefffff,
+  0x62040fe3f8bffff62925afff5520e349cc2fffffffe3fffe1f7fffffbbeefffff, 0x62040fff1fffeff629255a504ffe94fce7ffcbff8fffffc3f0ffdff51041fb7ff, 0x62040fff18ffeff629255a504ffe9ffce7ffcbff8fffffc3ff59462fffeefffff, 0x62040ffff8ffeff629255a504ffff4ffe7ffcbff39480fc3f0ffdfffffeefb7ff,
+  0x62040fff1f5a8c0ffed6fd7ffffe9f9cfffffe5f8c7ff61883fbfff510416ffff, 0x62040fff185a8c0ffedffd7ffffe9f9cffffffff8ffff6188359462fffee6ffff, 0x62040fff1f5a8c0ffedffd7f5ffe949cfff418bf8fe3fffe10ffdfffbbff6b7ff, 0x62040fff1f5a8c0ffedffd7ffffe949cfff418bf8ffffffff0ffdff510416b7ff,
+  0x62040ffff85a8c0ffff6ffff5ffff449cc2ffe5ffc63fffe10fbdfffbbeefb7ff, 0x62040ffff85a8c0ffed6fd7f5520e39ffffffe5ffc63fffe1ffbffffbbee6ffff, 0x62040ffff85a8c0ffedffd7f5520e39fffffffffffe3fffe1f59462fbbee6ffff, 0x62040ffff85a8c0ffed6fd7ff520e39ffffffe5ffc7ff61883fbffffffee6ffff,
+  0x62040ffff85a8c0ffff6ffff5520e349cc2ffe5ffc63fffe1ffbffffbbeefffff, 0x62040fff1f5a8c0ffff65a504ffe94fcfffffe5f8c7ffffff0fbdff51041fb7ff, 0x62040fff185a8c062925ffff5ffe9ffcffffffff8fe3fffe1f59462fbbeefffff, 0x62040fff185a8c0629255a504ffe94fcffffffff8ffffffff0ffdfffffeefb7ff,
+  0x6204062ce1fdefffdbf6ffff5a7fffffe7ffca5ffc63ffc21ffbfff73bff48fff, 0x6204062ce1fdefffdadffd7f5a7fff9fe7ffcbffffe3ffc21f5946273bff6ffff, 0x6204062ce1ffeffffedffd7ffffff49fe7ffcbff39480fc3f0ffdff510416b7ff, 0x6204062ce1fdefffdadffd7ffa7fff9fe7ffcbff39480fc3ff5946277fff6ffff,
+  0x6204062ce1fdffffdadffd7f5a7fff9ffff418bfffe3fffe1f5946273bff6ffff, 0x6204062ce1fdffffdadffd7ffa7ff49ffff418bf39480ffff0ffdff77fff6b7ff, 0x6204062ce1fdffffdbf6ffff5a7fff49cc2ffe5ffc63fffe1ffbfff73bff48fff, 0x6204062ce1fdffffdbffffff5a7ff449cc2418bfffe3fffe10ffdff73bfffb7ff,
+  0x6204062ce1ffeffffff6ffff5520e3ffe7ffca5ffc63ffc21ffbffffbbff48fff, 0x6204062ce1ffeffffed6fd7ff520e39fe7ffca5ffc7fffc3fffbfff510416ffff, 0x6204062ce1ffeffffedffd7f5520e39fe7ffcbffffe3ffc21f59462fbbff6ffff, 0x6204062ce1fdefffdbf65a504a7ff4ffe7ffca5ffc7fffc3f0fbdff77ffffb7ff,
+  0x6204062ce1ffeffffff65a504ffff4ffe7ffca5ffc7fffc3f0fbdff51041fb7ff, 0x6204062ce1fdefffdbff5a504a7ff4ffe7ffcbff39480fc3f0ffdff77ffffb7ff, 0x6204062ce1fdffffdbf65a504a7ff449cc2ffe5ffc7ffffff0fbdff77ffffb7ff, 0x6204062ce15a8c0ffed6fd7f5ffff49ffffffe5ffc63fffe10fbdfffbbff6b7ff,
+  0x6204062ce15a8c0ffed6fd7ffffff49ffffffe5ffc7ffffff0fbdff510416b7ff]
+private def family (g : Bool) : Family := if g then family1 else family0
+
+private def words : Array Nat := #[201334785, 268443650, 8200, 8704, 134234114, 134234116, 134234128, 134235136, 32772, 32776, 32800, 34816, 65544, 65552, 65600, 69632, 134348801, 131088, 131104, 131200, 537133058, 262176, 262208, 262400, 524292, 524352, 524416, 524800, 1048584, 1048704, 1048832, 1049600, 2097168, 2097408, 2097664, 2099200, 4194336, 4194816, 4195328, 4198400, 142606337, 8388672, 8389632, 8390656, 16777218, 16777344, 16779264, 16781312, 167772161, 33554436, 33554688, 33558528]
+
+-- Each choice names a wire whose entire negative bitset is covered by this positive flag.
+private def chosen (c : Family) (i p : Nat) := (c.choices[i]! >>> (5*p)) &&& 31
+private def mark (c : Family) (i p : Nat) : Nat :=
+  let w := chosen c i p
+  if w < 26 ∧ words[p]! &&& (c.negatives[i]! ||| c.minima[w]!) = words[p]! then
+    c.boards[w]!
+  else 0
+
+-- First component: some usable flag. Second: a flag survives any single allowed deletion.
+private def tally (c : Family) (i : Nat) : Nat → Nat × Nat
+  | 0 => (0,0)
+  | p+1 =>
+    let t := tally c i p
+    let b := mark c i p
+    (t.1 ||| b, t.2 ||| (if c.group.testBit p then b &&& t.1 else b))
+
+private theorem sound (c : Family) (i j n : Nat) :
+    ((tally c i n).1.testBit j = true → ∃ p < n, (mark c i p).testBit j = true) ∧
+    ((tally c i n).2.testBit j = true → ∀ e, c.group.testBit e = true →
+      ∃ p < n, p ≠ e ∧ (mark c i p).testBit j = true) := by
+  induction n with
+  | zero => simp [tally]
+  | succ n ih =>
+    constructor
+    · intro h
+      change ((tally c i n).1 ||| mark c i n).testBit j = true at h
+      rw [Nat.testBit_or,Bool.or_eq_true] at h
+      rcases h with h | h
+      · obtain ⟨p,hp,on⟩ := ih.1 h
+        exact ⟨p,by omega,on⟩
+      · exact ⟨n,by omega,h⟩
+    · intro h e he
+      change ((tally c i n).2 ||| (if c.group.testBit n then mark c i n &&& (tally c i n).1 else mark c i n)).testBit j = true at h
+      rw [Nat.testBit_or,Bool.or_eq_true] at h
+      rcases h with h | h
+      · obtain ⟨p,hp,ne,on⟩ := ih.2 h e he
+        exact ⟨p,by omega,ne,on⟩
+      · cases gn : c.group.testBit n with
+        | false =>
+          simp only [gn,Bool.false_eq_true,ite_false] at h
+          exact ⟨n,by omega,fun eq => by simpa [eq,he] using gn,h⟩
+        | true =>
+          simp only [gn,ite_true,Nat.testBit_and,Bool.and_eq_true] at h
+          by_cases ne : n = e
+          · obtain ⟨p,hp,on⟩ := ih.1 h.2
+            exact ⟨p,by omega,by omega,on⟩
+          · exact ⟨n,by omega,ne,h.1⟩
+
+private def boardProp (g : Bool) (w : Nat) (j : Fin 257) : Prop :=
+  let c := family g
+  c.boards[w]!.testBit j.val = true → c.minima[w]! &&& c.negatives[j.val]! = c.minima[w]!
+private instance (g w j) : Decidable (boardProp g w j) := by unfold boardProp; infer_instance
+
+private def coverProp (g : Bool) (i : Nat) : Prop :=
+  (tally (family g) i 52).2 ||| (1 <<< i) = 2^257-1
+private instance (g i) : Decidable (coverProp g i) := by unfold coverProp; infer_instance
+set_option maxRecDepth 12000 in
+private theorem bits0w0 : ∀ j : Fin 257, boardProp false 0 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits0w1 : ∀ j : Fin 257, boardProp false 1 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits0w2 : ∀ j : Fin 257, boardProp false 2 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits0w3 : ∀ j : Fin 257, boardProp false 3 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits0w4 : ∀ j : Fin 257, boardProp false 4 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits0w5 : ∀ j : Fin 257, boardProp false 5 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits0w6 : ∀ j : Fin 257, boardProp false 6 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits0w7 : ∀ j : Fin 257, boardProp false 7 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits0w8 : ∀ j : Fin 257, boardProp false 8 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits0w9 : ∀ j : Fin 257, boardProp false 9 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits0w10 : ∀ j : Fin 257, boardProp false 10 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits0w11 : ∀ j : Fin 257, boardProp false 11 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits0w12 : ∀ j : Fin 257, boardProp false 12 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits0w13 : ∀ j : Fin 257, boardProp false 13 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits0w14 : ∀ j : Fin 257, boardProp false 14 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits0w15 : ∀ j : Fin 257, boardProp false 15 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits0w16 : ∀ j : Fin 257, boardProp false 16 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits0w17 : ∀ j : Fin 257, boardProp false 17 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits0w18 : ∀ j : Fin 257, boardProp false 18 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits0w19 : ∀ j : Fin 257, boardProp false 19 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits0w20 : ∀ j : Fin 257, boardProp false 20 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits0w21 : ∀ j : Fin 257, boardProp false 21 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits0w22 : ∀ j : Fin 257, boardProp false 22 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits0w23 : ∀ j : Fin 257, boardProp false 23 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits0w24 : ∀ j : Fin 257, boardProp false 24 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits0w25 : ∀ j : Fin 257, boardProp false 25 j := by decide +kernel
+private theorem boards0 (w : Fin 26) (j : Fin 257) : boardProp false w.val j := by
+  match w with
+  | ⟨0,_⟩ => exact bits0w0 j
+  | ⟨1,_⟩ => exact bits0w1 j
+  | ⟨2,_⟩ => exact bits0w2 j
+  | ⟨3,_⟩ => exact bits0w3 j
+  | ⟨4,_⟩ => exact bits0w4 j
+  | ⟨5,_⟩ => exact bits0w5 j
+  | ⟨6,_⟩ => exact bits0w6 j
+  | ⟨7,_⟩ => exact bits0w7 j
+  | ⟨8,_⟩ => exact bits0w8 j
+  | ⟨9,_⟩ => exact bits0w9 j
+  | ⟨10,_⟩ => exact bits0w10 j
+  | ⟨11,_⟩ => exact bits0w11 j
+  | ⟨12,_⟩ => exact bits0w12 j
+  | ⟨13,_⟩ => exact bits0w13 j
+  | ⟨14,_⟩ => exact bits0w14 j
+  | ⟨15,_⟩ => exact bits0w15 j
+  | ⟨16,_⟩ => exact bits0w16 j
+  | ⟨17,_⟩ => exact bits0w17 j
+  | ⟨18,_⟩ => exact bits0w18 j
+  | ⟨19,_⟩ => exact bits0w19 j
+  | ⟨20,_⟩ => exact bits0w20 j
+  | ⟨21,_⟩ => exact bits0w21 j
+  | ⟨22,_⟩ => exact bits0w22 j
+  | ⟨23,_⟩ => exact bits0w23 j
+  | ⟨24,_⟩ => exact bits0w24 j
+  | ⟨25,_⟩ => exact bits0w25 j
+  | ⟨a+26,ha⟩ => omega
+set_option maxRecDepth 12000 in
+private theorem block0q0 : ∀ r : Fin 8, coverProp false (r.val+0) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q1 : ∀ r : Fin 8, coverProp false (r.val+8) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q2 : ∀ r : Fin 8, coverProp false (r.val+16) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q3 : ∀ r : Fin 8, coverProp false (r.val+24) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q4 : ∀ r : Fin 8, coverProp false (r.val+32) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q5 : ∀ r : Fin 8, coverProp false (r.val+40) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q6 : ∀ r : Fin 8, coverProp false (r.val+48) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q7 : ∀ r : Fin 8, coverProp false (r.val+56) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q8 : ∀ r : Fin 8, coverProp false (r.val+64) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q9 : ∀ r : Fin 8, coverProp false (r.val+72) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q10 : ∀ r : Fin 8, coverProp false (r.val+80) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q11 : ∀ r : Fin 8, coverProp false (r.val+88) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q12 : ∀ r : Fin 8, coverProp false (r.val+96) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q13 : ∀ r : Fin 8, coverProp false (r.val+104) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q14 : ∀ r : Fin 8, coverProp false (r.val+112) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q15 : ∀ r : Fin 8, coverProp false (r.val+120) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q16 : ∀ r : Fin 8, coverProp false (r.val+128) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q17 : ∀ r : Fin 8, coverProp false (r.val+136) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q18 : ∀ r : Fin 8, coverProp false (r.val+144) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q19 : ∀ r : Fin 8, coverProp false (r.val+152) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q20 : ∀ r : Fin 8, coverProp false (r.val+160) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q21 : ∀ r : Fin 8, coverProp false (r.val+168) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q22 : ∀ r : Fin 8, coverProp false (r.val+176) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q23 : ∀ r : Fin 8, coverProp false (r.val+184) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q24 : ∀ r : Fin 8, coverProp false (r.val+192) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q25 : ∀ r : Fin 8, coverProp false (r.val+200) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q26 : ∀ r : Fin 8, coverProp false (r.val+208) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q27 : ∀ r : Fin 8, coverProp false (r.val+216) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q28 : ∀ r : Fin 8, coverProp false (r.val+224) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q29 : ∀ r : Fin 8, coverProp false (r.val+232) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q30 : ∀ r : Fin 8, coverProp false (r.val+240) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q31 : ∀ r : Fin 8, coverProp false (r.val+248) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block0q32 : ∀ r : Fin 1, coverProp false (r.val+256) := by decide +kernel
+private theorem cover0 (i : Fin 257) : coverProp false i.val := by
+  have h (q : Fin 33) (r : Nat) (hr : r < 8) (hs : r+8*q.val < 257) : coverProp false (r+8*q.val) := by
+    match q with
+    | ⟨0,_⟩ => exact block0q0 ⟨r,hr⟩
+    | ⟨1,_⟩ => exact block0q1 ⟨r,hr⟩
+    | ⟨2,_⟩ => exact block0q2 ⟨r,hr⟩
+    | ⟨3,_⟩ => exact block0q3 ⟨r,hr⟩
+    | ⟨4,_⟩ => exact block0q4 ⟨r,hr⟩
+    | ⟨5,_⟩ => exact block0q5 ⟨r,hr⟩
+    | ⟨6,_⟩ => exact block0q6 ⟨r,hr⟩
+    | ⟨7,_⟩ => exact block0q7 ⟨r,hr⟩
+    | ⟨8,_⟩ => exact block0q8 ⟨r,hr⟩
+    | ⟨9,_⟩ => exact block0q9 ⟨r,hr⟩
+    | ⟨10,_⟩ => exact block0q10 ⟨r,hr⟩
+    | ⟨11,_⟩ => exact block0q11 ⟨r,hr⟩
+    | ⟨12,_⟩ => exact block0q12 ⟨r,hr⟩
+    | ⟨13,_⟩ => exact block0q13 ⟨r,hr⟩
+    | ⟨14,_⟩ => exact block0q14 ⟨r,hr⟩
+    | ⟨15,_⟩ => exact block0q15 ⟨r,hr⟩
+    | ⟨16,_⟩ => exact block0q16 ⟨r,hr⟩
+    | ⟨17,_⟩ => exact block0q17 ⟨r,hr⟩
+    | ⟨18,_⟩ => exact block0q18 ⟨r,hr⟩
+    | ⟨19,_⟩ => exact block0q19 ⟨r,hr⟩
+    | ⟨20,_⟩ => exact block0q20 ⟨r,hr⟩
+    | ⟨21,_⟩ => exact block0q21 ⟨r,hr⟩
+    | ⟨22,_⟩ => exact block0q22 ⟨r,hr⟩
+    | ⟨23,_⟩ => exact block0q23 ⟨r,hr⟩
+    | ⟨24,_⟩ => exact block0q24 ⟨r,hr⟩
+    | ⟨25,_⟩ => exact block0q25 ⟨r,hr⟩
+    | ⟨26,_⟩ => exact block0q26 ⟨r,hr⟩
+    | ⟨27,_⟩ => exact block0q27 ⟨r,hr⟩
+    | ⟨28,_⟩ => exact block0q28 ⟨r,hr⟩
+    | ⟨29,_⟩ => exact block0q29 ⟨r,hr⟩
+    | ⟨30,_⟩ => exact block0q30 ⟨r,hr⟩
+    | ⟨31,_⟩ => exact block0q31 ⟨r,hr⟩
+    | ⟨32,_⟩ => exact block0q32 ⟨r,by change r + 256 < 257 at hs; omega⟩
+    | ⟨a+33,ha⟩ => omega
+  have eq : i.val%8+8*(i.val/8) = i.val := by omega
+  simpa only [eq] using h ⟨i.val/8,by omega⟩ (i.val%8) (by omega) (by dsimp; omega)
+
+set_option maxRecDepth 12000 in
+private theorem bits1w0 : ∀ j : Fin 257, boardProp true 0 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits1w1 : ∀ j : Fin 257, boardProp true 1 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits1w2 : ∀ j : Fin 257, boardProp true 2 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits1w3 : ∀ j : Fin 257, boardProp true 3 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits1w4 : ∀ j : Fin 257, boardProp true 4 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits1w5 : ∀ j : Fin 257, boardProp true 5 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits1w6 : ∀ j : Fin 257, boardProp true 6 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits1w7 : ∀ j : Fin 257, boardProp true 7 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits1w8 : ∀ j : Fin 257, boardProp true 8 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits1w9 : ∀ j : Fin 257, boardProp true 9 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits1w10 : ∀ j : Fin 257, boardProp true 10 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits1w11 : ∀ j : Fin 257, boardProp true 11 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits1w12 : ∀ j : Fin 257, boardProp true 12 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits1w13 : ∀ j : Fin 257, boardProp true 13 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits1w14 : ∀ j : Fin 257, boardProp true 14 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits1w15 : ∀ j : Fin 257, boardProp true 15 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits1w16 : ∀ j : Fin 257, boardProp true 16 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits1w17 : ∀ j : Fin 257, boardProp true 17 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits1w18 : ∀ j : Fin 257, boardProp true 18 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits1w19 : ∀ j : Fin 257, boardProp true 19 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits1w20 : ∀ j : Fin 257, boardProp true 20 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits1w21 : ∀ j : Fin 257, boardProp true 21 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits1w22 : ∀ j : Fin 257, boardProp true 22 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits1w23 : ∀ j : Fin 257, boardProp true 23 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits1w24 : ∀ j : Fin 257, boardProp true 24 j := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem bits1w25 : ∀ j : Fin 257, boardProp true 25 j := by decide +kernel
+private theorem boards1 (w : Fin 26) (j : Fin 257) : boardProp true w.val j := by
+  match w with
+  | ⟨0,_⟩ => exact bits1w0 j
+  | ⟨1,_⟩ => exact bits1w1 j
+  | ⟨2,_⟩ => exact bits1w2 j
+  | ⟨3,_⟩ => exact bits1w3 j
+  | ⟨4,_⟩ => exact bits1w4 j
+  | ⟨5,_⟩ => exact bits1w5 j
+  | ⟨6,_⟩ => exact bits1w6 j
+  | ⟨7,_⟩ => exact bits1w7 j
+  | ⟨8,_⟩ => exact bits1w8 j
+  | ⟨9,_⟩ => exact bits1w9 j
+  | ⟨10,_⟩ => exact bits1w10 j
+  | ⟨11,_⟩ => exact bits1w11 j
+  | ⟨12,_⟩ => exact bits1w12 j
+  | ⟨13,_⟩ => exact bits1w13 j
+  | ⟨14,_⟩ => exact bits1w14 j
+  | ⟨15,_⟩ => exact bits1w15 j
+  | ⟨16,_⟩ => exact bits1w16 j
+  | ⟨17,_⟩ => exact bits1w17 j
+  | ⟨18,_⟩ => exact bits1w18 j
+  | ⟨19,_⟩ => exact bits1w19 j
+  | ⟨20,_⟩ => exact bits1w20 j
+  | ⟨21,_⟩ => exact bits1w21 j
+  | ⟨22,_⟩ => exact bits1w22 j
+  | ⟨23,_⟩ => exact bits1w23 j
+  | ⟨24,_⟩ => exact bits1w24 j
+  | ⟨25,_⟩ => exact bits1w25 j
+  | ⟨a+26,ha⟩ => omega
+set_option maxRecDepth 12000 in
+private theorem block1q0 : ∀ r : Fin 8, coverProp true (r.val+0) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q1 : ∀ r : Fin 8, coverProp true (r.val+8) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q2 : ∀ r : Fin 8, coverProp true (r.val+16) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q3 : ∀ r : Fin 8, coverProp true (r.val+24) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q4 : ∀ r : Fin 8, coverProp true (r.val+32) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q5 : ∀ r : Fin 8, coverProp true (r.val+40) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q6 : ∀ r : Fin 8, coverProp true (r.val+48) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q7 : ∀ r : Fin 8, coverProp true (r.val+56) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q8 : ∀ r : Fin 8, coverProp true (r.val+64) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q9 : ∀ r : Fin 8, coverProp true (r.val+72) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q10 : ∀ r : Fin 8, coverProp true (r.val+80) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q11 : ∀ r : Fin 8, coverProp true (r.val+88) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q12 : ∀ r : Fin 8, coverProp true (r.val+96) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q13 : ∀ r : Fin 8, coverProp true (r.val+104) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q14 : ∀ r : Fin 8, coverProp true (r.val+112) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q15 : ∀ r : Fin 8, coverProp true (r.val+120) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q16 : ∀ r : Fin 8, coverProp true (r.val+128) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q17 : ∀ r : Fin 8, coverProp true (r.val+136) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q18 : ∀ r : Fin 8, coverProp true (r.val+144) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q19 : ∀ r : Fin 8, coverProp true (r.val+152) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q20 : ∀ r : Fin 8, coverProp true (r.val+160) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q21 : ∀ r : Fin 8, coverProp true (r.val+168) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q22 : ∀ r : Fin 8, coverProp true (r.val+176) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q23 : ∀ r : Fin 8, coverProp true (r.val+184) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q24 : ∀ r : Fin 8, coverProp true (r.val+192) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q25 : ∀ r : Fin 8, coverProp true (r.val+200) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q26 : ∀ r : Fin 8, coverProp true (r.val+208) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q27 : ∀ r : Fin 8, coverProp true (r.val+216) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q28 : ∀ r : Fin 8, coverProp true (r.val+224) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q29 : ∀ r : Fin 8, coverProp true (r.val+232) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q30 : ∀ r : Fin 8, coverProp true (r.val+240) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q31 : ∀ r : Fin 8, coverProp true (r.val+248) := by decide +kernel
+set_option maxRecDepth 12000 in
+private theorem block1q32 : ∀ r : Fin 1, coverProp true (r.val+256) := by decide +kernel
+private theorem cover1 (i : Fin 257) : coverProp true i.val := by
+  have h (q : Fin 33) (r : Nat) (hr : r < 8) (hs : r+8*q.val < 257) : coverProp true (r+8*q.val) := by
+    match q with
+    | ⟨0,_⟩ => exact block1q0 ⟨r,hr⟩
+    | ⟨1,_⟩ => exact block1q1 ⟨r,hr⟩
+    | ⟨2,_⟩ => exact block1q2 ⟨r,hr⟩
+    | ⟨3,_⟩ => exact block1q3 ⟨r,hr⟩
+    | ⟨4,_⟩ => exact block1q4 ⟨r,hr⟩
+    | ⟨5,_⟩ => exact block1q5 ⟨r,hr⟩
+    | ⟨6,_⟩ => exact block1q6 ⟨r,hr⟩
+    | ⟨7,_⟩ => exact block1q7 ⟨r,hr⟩
+    | ⟨8,_⟩ => exact block1q8 ⟨r,hr⟩
+    | ⟨9,_⟩ => exact block1q9 ⟨r,hr⟩
+    | ⟨10,_⟩ => exact block1q10 ⟨r,hr⟩
+    | ⟨11,_⟩ => exact block1q11 ⟨r,hr⟩
+    | ⟨12,_⟩ => exact block1q12 ⟨r,hr⟩
+    | ⟨13,_⟩ => exact block1q13 ⟨r,hr⟩
+    | ⟨14,_⟩ => exact block1q14 ⟨r,hr⟩
+    | ⟨15,_⟩ => exact block1q15 ⟨r,hr⟩
+    | ⟨16,_⟩ => exact block1q16 ⟨r,hr⟩
+    | ⟨17,_⟩ => exact block1q17 ⟨r,hr⟩
+    | ⟨18,_⟩ => exact block1q18 ⟨r,hr⟩
+    | ⟨19,_⟩ => exact block1q19 ⟨r,hr⟩
+    | ⟨20,_⟩ => exact block1q20 ⟨r,hr⟩
+    | ⟨21,_⟩ => exact block1q21 ⟨r,hr⟩
+    | ⟨22,_⟩ => exact block1q22 ⟨r,hr⟩
+    | ⟨23,_⟩ => exact block1q23 ⟨r,hr⟩
+    | ⟨24,_⟩ => exact block1q24 ⟨r,hr⟩
+    | ⟨25,_⟩ => exact block1q25 ⟨r,hr⟩
+    | ⟨26,_⟩ => exact block1q26 ⟨r,hr⟩
+    | ⟨27,_⟩ => exact block1q27 ⟨r,hr⟩
+    | ⟨28,_⟩ => exact block1q28 ⟨r,hr⟩
+    | ⟨29,_⟩ => exact block1q29 ⟨r,hr⟩
+    | ⟨30,_⟩ => exact block1q30 ⟨r,hr⟩
+    | ⟨31,_⟩ => exact block1q31 ⟨r,hr⟩
+    | ⟨32,_⟩ => exact block1q32 ⟨r,by change r + 256 < 257 at hs; omega⟩
+    | ⟨a+33,ha⟩ => omega
+  have eq : i.val%8+8*(i.val/8) = i.val := by omega
+  simpa only [eq] using h ⟨i.val/8,by omega⟩ (i.val%8) (by omega) (by dsimp; omega)
+
+private theorem boardOK (g : Bool) (w : Fin 26) (j : Fin 257) : boardProp g w.val j := by
+  cases g
+  · exact boards0 w j
+  · exact boards1 w j
+private theorem coverOK (g : Bool) (i : Fin 257) : coverProp g i.val := by
+  cases g
+  · exact cover0 i
+  · exact cover1 i
+private theorem posRows : ∀ p : Fin 52, words[p.val]! = pos p.val := by decide +kernel
+private theorem negRows : ∀ (g : Bool) (i : Fin 257), (family g).indices[i.val]! < 468 ∧ (family g).negatives[i.val]! = neg (family g).indices[i.val]! := by decide +kernel
+private def index (g : Bool) (i : Fin 257) : Fin 468 := ⟨(family g).indices[i.val]!, (negRows g i).1⟩
+
+private theorem bitLift (p a m b : Bool) (c : (p && (a || m)) = p) (d : (m && b) = m) : (p && (a || b)) = p := by
+  cases p <;> cases a <;> cases m <;> cases b <;> simp_all
+
+private theorem retained (g : Bool) (i j : Fin 257) (lt : i.val < j.val) (e : Nat)
+    (he : (family g).group.testBit e = true) :
+    ∃ p : Fin 52, p.val ≠ e ∧ pos p.val &&& (neg (index g i).val ||| neg (index g j).val) = pos p.val := by
+  let c := family g
+  have checked : (tally c i.val 52).2 ||| (1 <<< i.val) = 2^257-1 := coverOK g i
+  have full := congrArg (fun x : Nat => x.testBit j.val) checked
+  have one : (1 <<< i.val : Nat).testBit j.val = false := by
+    rw [Nat.one_shiftLeft,Nat.testBit_two_pow]
+    simp [show i.val ≠ j.val by omega]
+  have bit : ((2:Nat)^257-1).testBit j.val = true := by simp [j.isLt]
+  simp only [Nat.testBit_or,one,Bool.or_false,bit] at full
+  obtain ⟨p,bound,ne,on⟩ := (sound c i.val j.val 52).2 full e he
+  let w := chosen c i.val p
+  by_cases ok : w < 26 ∧ words[p]! &&& (c.negatives[i.val]! ||| c.minima[w]!) = words[p]!
+  · have yes : c.boards[w]!.testBit j.val = true := by
+      simpa only [mark,← show w = chosen c i.val p from rfl,ite_eq_left ok] using on
+    have sub := boardOK g ⟨w,ok.1⟩ j yes
+    refine ⟨⟨p,bound⟩,ne,?_⟩
+    change pos p &&& (neg (family g).indices[i.val]! ||| neg (family g).indices[j.val]!) = pos p
+    rw [← posRows ⟨p,bound⟩,← (negRows g i).2,← (negRows g j).2]
+    apply Nat.eq_of_testBit_eq
+    intro b
+    have h1 := congrArg (fun t : Nat => t.testBit b) ok.2
+    have h2 := congrArg (fun t : Nat => t.testBit b) sub
+    simp only [Nat.testBit_and,Nat.testBit_or] at h1 h2 ⊢
+    exact bitLift _ _ _ _ h1 h2
+  · simp only [mark,← show w = chosen c i.val p from rfl,ite_eq_right ok,Nat.zero_testBit] at on
+    contradiction
+private theorem baseGood (p : Fin 52) (a b : Fin 468)
+    (cover : pos p.val &&& (neg a.val ||| neg b.val) = pos p.val) :
+    ∀ w ∈ base, good p.val (52+a.val) (52+b.val) w := by
+  intro w hw
+  rcases List.mem_append.mp hw with raw | constants
+  · obtain ⟨j,rfl⟩ := List.mem_ofFn.mp raw
+    have eq := congrArg (fun k : Nat => k.testBit j.val) cover
+    simp only [Nat.testBit_and,Nat.testBit_or] at eq
+    intro hp
+    have yes : (pos p.val).testBit j.val = true := by simpa [input,p.isLt] using hp
+    rw [yes,Bool.true_and,Bool.or_eq_true] at eq
+    simpa [input,show ¬52+a.val < 52 by omega,show ¬52+b.val < 52 by omega] using eq
+  · simp only [List.mem_cons,List.not_mem_nil,or_false] at constants
+    rcases constants with rfl | rfl <;> simp [good]
+
+private theorem readGood {p a b : Nat} {s : List Column} (h : ∀ v ∈ s, good p a b v) (j : Nat) :
+    good p a b (wire s j) := by
+  unfold wire
+  rw [List.getD_eq_getElem?_getD]
+  cases e : s[j]? with
+  | none => simp [good]
+  | some v => exact h v (List.mem_of_getElem? e)
+
+end PEqualNP.Research.Plane888SingleDeletion
+
+open PEqualNP.Research.PlaneFirstAndSeparation PEqualNP.Research.Plane888NineFlags
+  PEqualNP.Research.Plane888SingleDeletion in
+theorem PEqualNP.Research.Plane888SingleDeletion : ∀ (e : Fin 52) (f : Column),
+    ((0xf5048ff40f800 : Nat).testBit e.val = true ∨ (0xafb700a9031c : Nat).testBit e.val = true) →
+    (∀ p : Fin 52, f p.val = true → p.val = e.val) → separated (base ++ [f]) := by
+  intro e f group support
+  have pick : ∃ g : Bool, (family g).group.testBit e.val = true := by
+    rcases group with h | h
+    · exact ⟨false,h⟩
+    · exact ⟨true,h⟩
+  obtain ⟨g,hg⟩ := pick
+  refine ⟨index g,?_⟩
+  intro i j lt
+  obtain ⟨p,ne,cover⟩ := retained g i j lt e.val hg
+  refine ⟨p,?_⟩
+  intro w hw
+  rcases List.mem_append.mp hw with old | last
+  · exact baseGood p _ _ cover w old
+  · obtain rfl := List.mem_singleton.mp last
+    intro on
+    exact (ne (support p on)).elim
