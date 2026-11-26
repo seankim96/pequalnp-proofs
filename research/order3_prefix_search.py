@@ -151,7 +151,7 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
            prune_tail: bool = True, operator_bounds: bool = False, fifth: Gate | None = None,
            sixth: Gate | None = None, seventh: Gate | None = None,
            eighth: Gate | None = None, ninth: Gate | None = None,
-           negative_seeds: tuple[int, ...] = ()) -> str:
+           negative_seeds: tuple[int, ...] = (), *, tenth: Gate | None = None) -> str:
     rows = test_rows()
     if point_quadrangles:
         point_mask = (1 << 13) - 1
@@ -178,7 +178,8 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
         prefix += (fourth,)
         label += f" then {'AND' if op else 'OR'}({a},{b})"
     for name, gate, position in (("fifth", fifth, 5), ("sixth", sixth, 6),
-                                 ("seventh", seventh, 7), ("eighth", eighth, 8), ("ninth", ninth, 9)):
+                                 ("seventh", seventh, 7), ("eighth", eighth, 8), ("ninth", ninth, 9),
+                                 ("tenth", tenth, 10)):
         if gate is None:
             continue
         op, a, b = gate
@@ -226,9 +227,17 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
             if (prefix[2:4] == ((True, 15, 27), (True, 17, 26)) and seventh is not None
                     and {fifth, sixth} == {(True, 13, 26), (True, 13, 27)}):
                 # The uniform seventh- and eighth-gate bounds cover these two orders.
-                min_and = 9 - int(ninth is not None and ninth[0])
+                min_and = 9 - sum(g[0] for g in prefix[8:])
                 if ninth is not None and {seventh, eighth} == {(True, 0, 17), (True, 0, 23)}:
-                    min_and = 9  # PlaneCase35NinthTraceBound
+                    min_and = 9 - sum(g[0] for g in prefix[9:])  # PlaneCase35NinthTraceBound
+            if (prefix[2:4] == ((True, 15, 27), (True, 17, 26)) and len(prefix) >= 7):
+                # PlaneCase35GuardedPoolTraceBound allows any number of guarded wires
+                # before the last two free choices. Check only its silent-wire alternative.
+                guard = {0, 1, 2, 3, 16, 40}
+                if all(not evaluate(prefix[:end], row)
+                       for end in range(5, len(prefix) - 1)
+                       for i, (row, yes) in enumerate(rows) if yes and i not in guard):
+                    min_and = 9
             model.require_at_least(flags, min_and)
         model.require_at_least([-flag for flag in flags], min_or - sixth_or - later_or)
     # Start with both answers. Add concrete counterexamples to each candidate.
@@ -308,6 +317,8 @@ def main():
                         help="fix a eighth binary gate after the seventh")
     parser.add_argument("--ninth", nargs=3, metavar=("OP", "LEFT", "RIGHT"),
                         help="fix a ninth binary gate after the eighth")
+    parser.add_argument("--tenth", nargs=3, metavar=("OP", "LEFT", "RIGHT"),
+                        help="fix a tenth binary gate after the ninth")
     parser.add_argument("--no-tail-pruning", action="store_true",
                         help="omit the two certified gate-type clauses when replaying earlier runs")
     parser.add_argument("--operator-bounds", action="store_true",
@@ -341,7 +352,7 @@ def main():
             parser.error("expected 0 <= LEFT <= RIGHT < 29")
     extra_gates = []
     previous = fourth
-    for position, name in enumerate(("fifth", "sixth", "seventh", "eighth", "ninth"), start=5):
+    for position, name in enumerate(("fifth", "sixth", "seventh", "eighth", "ninth", "tenth"), start=5):
         operand_spec = getattr(args, name)
         gate = None
         if operand_spec:
@@ -364,7 +375,7 @@ def main():
     if args.seconds < 1:
         parser.error("--seconds must be positive")
     print(search(args.case, args.seconds, args.solver, args.witness, args.all_positives,
-                 args.point_quadrangles, args.zero_third, third, fourth, not args.no_tail_pruning, args.operator_bounds, *extra_gates, negative_seeds=tuple(args.negative_seed)))
+                 args.point_quadrangles, args.zero_third, third, fourth, not args.no_tail_pruning, args.operator_bounds, *extra_gates[:5], negative_seeds=tuple(args.negative_seed), tenth=extra_gates[5]))
 
 
 if __name__ == "__main__":
