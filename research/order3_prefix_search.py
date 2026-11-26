@@ -149,7 +149,9 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
            point_quadrangles: bool = False, zero_third: bool = False,
            third: Gate | None = None, fourth: Gate | None = None,
            prune_tail: bool = True, operator_bounds: bool = False, fifth: Gate | None = None,
-           sixth: Gate | None = None) -> str:
+           sixth: Gate | None = None, seventh: Gate | None = None,
+           eighth: Gate | None = None, ninth: Gate | None = None,
+           negative_seeds: tuple[int, ...] = ()) -> str:
     rows = test_rows()
     if point_quadrangles:
         point_mask = (1 << 13) - 1
@@ -175,17 +177,14 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
             raise ValueError("fourth gate needs a three-gate prefix and ordered earlier wires")
         prefix += (fourth,)
         label += f" then {'AND' if op else 'OR'}({a},{b})"
-    if fifth is not None:
-        op, a, b = fifth
-        if len(prefix) != 4 or not 0 <= a <= b < 30:
-            raise ValueError("fifth gate needs a four-gate prefix and ordered earlier wires")
-        prefix += (fifth,)
-        label += f" then {'AND' if op else 'OR'}({a},{b})"
-    if sixth is not None:
-        op, a, b = sixth
-        if len(prefix) != 5 or not 0 <= a <= b < 31:
-            raise ValueError("sixth gate needs a five-gate prefix and ordered earlier wires")
-        prefix += (sixth,)
+    for name, gate, position in (("fifth", fifth, 5), ("sixth", sixth, 6),
+                                 ("seventh", seventh, 7), ("eighth", eighth, 8), ("ninth", ninth, 9)):
+        if gate is None:
+            continue
+        op, a, b = gate
+        if len(prefix) != position - 1 or not 0 <= a <= b < 26 + len(prefix):
+            raise ValueError(f"{name} gate needs its full prefix and ordered earlier wires")
+        prefix += (gate,)
         label += f" then {'AND' if op else 'OR'}({a},{b})"
     model = Encoding(prefix, 63)
     if (prune_tail and not point_quadrangles and len(prefix) == 4 and
@@ -199,6 +198,8 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
         flags = [gate.is_and for gate in model.gates]
         min_or = 18 - sum(not gate[0] for gate in prefix[:5])
         sixth_and = int(sixth is not None and sixth[0])
+        later_and = sum(g[0] for g in prefix[6:])
+        later_or = sum(not g[0] for g in prefix[6:])
         sixth_or = int(sixth is not None and not sixth[0])
         if len(prefix) >= 4 and prefix[:3] == ((True, 0, 13), (False, 0, 14), (True, 1, 13)):
             # PlaneAllFourthAndCount and PlaneAllFourthOrCount cover all 1,682 codes.
@@ -210,7 +211,7 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
                               if positive and evaluate(prefix[:5], row))
                 if support & ~0x1604E3 == 0:
                     min_and = 9
-            model.require_at_least(flags, min_and - sixth_and)
+            model.require_at_least(flags, min_and - sixth_and - later_and)
         if len(prefix) >= 4 and prefix[:2] == ((False, 0, 1), (False, 3, 9)):
             # The 19 flags at negative row 159 already separate the 28 base wires.
             min_or = 18 - sum(not gate[0] for gate in prefix[2:5])
@@ -221,11 +222,22 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
                 min_or = 19 - int(fifth is not None and not fifth[0])
                 # The uniform fifth- and sixth-gate theorems retain all nine ANDs.
                 min_and = 9
+            min_and -= later_and
+            if (prefix[2:4] == ((True, 15, 27), (True, 17, 26)) and seventh is not None
+                    and {fifth, sixth} == {(True, 13, 26), (True, 13, 27)}):
+                # The uniform seventh- and eighth-gate bounds cover these two orders.
+                min_and = 9 - int(ninth is not None and ninth[0])
+                if ninth is not None and {seventh, eighth} == {(True, 0, 17), (True, 0, 23)}:
+                    min_and = 9  # PlaneCase35NinthTraceBound
             model.require_at_least(flags, min_and)
-        model.require_at_least([-flag for flag in flags], min_or - sixth_or)
+        model.require_at_least([-flag for flag in flags], min_or - sixth_or - later_or)
     # Start with both answers. Add concrete counterexamples to each candidate.
     active = set(range(52)) if all_positives else {0, 26}
     active.update((52, 52 + (len(rows) - 52) // 2))
+    for n in negative_seeds:
+        if not 0 <= n < len(rows) - 52:
+            raise ValueError("negative seed index outside the selected negative family")
+        active.add(52 + n)
     for i in sorted(active):
         model.add_row(*rows[i])
     candidates = 0
@@ -272,6 +284,8 @@ def main():
     parser.add_argument("--case", type=int, choices=range(68), metavar="0..67")
     parser.add_argument("--seconds", type=int, default=30)
     parser.add_argument("--solver", default="cadical", help="path to a CaDiCaL executable")
+    parser.add_argument("--negative-seed", type=int, action="append", default=[],
+                        help="also encode this zero-based index in the selected negative family (repeatable)")
     parser.add_argument("--all-positives", action="store_true",
                         help="start with all 52 incident pairs and two negative rows")
     parser.add_argument("--zero-third", action="store_true",
@@ -288,6 +302,12 @@ def main():
                         help="fix a fifth binary gate after the fourth")
     parser.add_argument("--sixth", nargs=3, metavar=("OP", "LEFT", "RIGHT"),
                         help="fix a sixth binary gate after the fifth")
+    parser.add_argument("--seventh", nargs=3, metavar=("OP", "LEFT", "RIGHT"),
+                        help="fix a seventh binary gate after the sixth")
+    parser.add_argument("--eighth", nargs=3, metavar=("OP", "LEFT", "RIGHT"),
+                        help="fix a eighth binary gate after the seventh")
+    parser.add_argument("--ninth", nargs=3, metavar=("OP", "LEFT", "RIGHT"),
+                        help="fix a ninth binary gate after the eighth")
     parser.add_argument("--no-tail-pruning", action="store_true",
                         help="omit the two certified gate-type clauses when replaying earlier runs")
     parser.add_argument("--operator-bounds", action="store_true",
@@ -319,28 +339,24 @@ def main():
             parser.error("fourth-gate wire indices must be integers")
         if not 0 <= fourth[1] <= fourth[2] < 29:
             parser.error("expected 0 <= LEFT <= RIGHT < 29")
-    fifth = None
-    if args.fifth:
-        op, a, b = args.fifth
-        if fourth is None or op not in ("AND", "OR"):
-            parser.error("--fifth requires a fixed fourth gate and AND or OR")
-        try:
-            fifth = (op == "AND", int(a), int(b))
-        except ValueError:
-            parser.error("fifth-gate wire indices must be integers")
-        if not 0 <= fifth[1] <= fifth[2] < 30:
-            parser.error("expected 0 <= LEFT <= RIGHT < 30")
-    sixth = None
-    if args.sixth:
-        op, a, b = args.sixth
-        if fifth is None or op not in ("AND", "OR"):
-            parser.error("--sixth requires a fixed fifth gate and AND or OR")
-        try:
-            sixth = (op == "AND", int(a), int(b))
-        except ValueError:
-            parser.error("sixth-gate wire indices must be integers")
-        if not 0 <= sixth[1] <= sixth[2] < 31:
-            parser.error("expected 0 <= LEFT <= RIGHT < 31")
+    extra_gates = []
+    previous = fourth
+    for position, name in enumerate(("fifth", "sixth", "seventh", "eighth", "ninth"), start=5):
+        operand_spec = getattr(args, name)
+        gate = None
+        if operand_spec:
+            op, left, right = operand_spec
+            if previous is None or op not in ("AND", "OR"):
+                parser.error(f"--{name} requires the previous gate and AND or OR")
+            try:
+                gate = (op == "AND", int(left), int(right))
+            except ValueError:
+                parser.error(f"{name}-gate wire indices must be integers")
+            limit = 26 + position - 1
+            if not 0 <= gate[1] <= gate[2] < limit:
+                parser.error(f"expected 0 <= LEFT <= RIGHT < {limit}")
+        extra_gates.append(gate)
+        previous = gate
     if args.case is None:
         for i, gates in enumerate(representatives()):
             print(i, " ".join(f"{'AND' if op else 'OR'}({a},{b})" for op, a, b in gates))
@@ -348,7 +364,7 @@ def main():
     if args.seconds < 1:
         parser.error("--seconds must be positive")
     print(search(args.case, args.seconds, args.solver, args.witness, args.all_positives,
-                 args.point_quadrangles, args.zero_third, third, fourth, not args.no_tail_pruning, args.operator_bounds, fifth, sixth))
+                 args.point_quadrangles, args.zero_third, third, fourth, not args.no_tail_pruning, args.operator_bounds, *extra_gates, negative_seeds=tuple(args.negative_seed)))
 
 
 if __name__ == "__main__":
