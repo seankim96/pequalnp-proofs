@@ -1,0 +1,14 @@
+let Gate := Bool × Nat × Nat
+let Row := List Bool
+let readWire (s : Row) (i : Nat) := s.getD i false
+let step (s : Row) (g : Gate) : Row :=
+  let x := readWire s g.2.1
+  let y := readWire s g.2.2
+  s ++ [if g.1 then x && y else x || y]
+let ands (gs : List Gate) := gs.countP Prod.fst
+let row (x : BitVec 32) : Row := List.ofFn fun i : Fin 32 => x.getLsbD i.val
+∀ (positives : Array (BitVec 32)) (negatives : Fin 257 → BitVec 32),
+    (∀ i j : Fin 257, i.val < j.val → ∃ p ∈ positives, p &&& (negatives i ||| negatives j) = p) →
+    ∀ (gs : List Gate) (o : Nat),
+    (∀ p ∈ positives, readWire (gs.foldl step (row p)) o = true) →
+    (∀ j : Fin 257, readWire (gs.foldl step (row (negatives j))) o = false) → 9 ≤ gs.countP Prod.fst

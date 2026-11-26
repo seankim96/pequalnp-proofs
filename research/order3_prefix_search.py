@@ -186,7 +186,9 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
         flags = [gate.is_and for gate in model.gates]
         min_or = 18 - sum(not gate[0] for gate in prefix)
         if len(prefix) == 4 and prefix[:3] == ((True, 0, 13), (False, 0, 14), (True, 1, 13)):
-            model.require_at_least(flags, 2)
+            # Code 84 has a 257-row separation certificate for nine ANDs.
+            min_and = 9 if prefix[3] == (False, 2, 26) else 2
+            model.require_at_least(flags, min_and)
             # The five certified negative-row samples cover every fourth gate.
             min_or = 18
         model.require_at_least([-flag for flag in flags], min_or)
