@@ -214,17 +214,12 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
         if len(prefix) >= 4 and prefix[:2] == ((False, 0, 1), (False, 3, 9)):
             # The 19 flags at negative row 159 already separate the 28 base wires.
             min_or = 18 - sum(not gate[0] for gate in prefix[2:5])
-            # PlaneCase35UniformFourth gives nine ANDs strictly after gate four.
-            min_and = 9 - int(fifth is not None and fifth[0])
+            # Charge each already-fixed AND against the generic fourth-gate bound.
+            min_and = 9 - int(fifth is not None and fifth[0]) - sixth_and
             if prefix[2:4] == ((True, 15, 27), (True, 17, 26)):
                 # PlaneCase35FirstOrFree requires 19 ORs strictly after gate four.
                 min_or = 19 - int(fifth is not None and not fifth[0])
-                # PlaneCase35EveryFifthAndBudget keeps nine ANDs after any fifth gate.
-                min_and = 9
-            min_and -= sixth_and
-            if (prefix[2:4] == ((True, 15, 27), (True, 17, 26)) and sixth is not None
-                    and {fifth, sixth} == {(True, 13, 26), (True, 13, 27)}):
-                # PlaneCase35SixthSparseBudget applies in either order, with extra = [].
+                # The uniform fifth- and sixth-gate theorems retain all nine ANDs.
                 min_and = 9
             model.require_at_least(flags, min_and)
         model.require_at_least([-flag for flag in flags], min_or - sixth_or)
