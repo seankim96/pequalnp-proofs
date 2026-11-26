@@ -1,0 +1,15 @@
+let V := Fin 42
+let Pair := V × V
+let Mask := Finset V
+let Join := Mask × Mask
+let ordered (a b : V) : Pair := (min a b,max a b)
+let edges := Finset.univ.filter fun e : Pair => decide (e.1.val < 21 ∧ 21 ≤ e.2.val ∧ (e.2.val+21-e.1.val)%21 ∈ ([0,5,7,17,20] : List Nat))
+let output (g : Join) := g.1 ∪ g.2
+let Available (gs : List Join) (s : Mask) : Prop := s.card ≤ 1 ∨ ∃ g ∈ gs, output g = s
+let support (t : Mask × Mask) : Finset Pair := (t.1 ×ˢ t.2).image fun p => ordered p.1 p.2
+∀ (k : Nat) (terms : Fin k → Mask × Mask) (gs : List Join),
+    (∀ pre g rest, gs = pre ++ g :: rest → Available rest g.1 ∧ Available rest g.2) →
+    (∀ i, (terms i).1.Nonempty ∧ (terms i).2.Nonempty) →
+    (∀ i, Available gs (terms i).1 ∧ Available gs (terms i).2) →
+    Finset.univ.biUnion (fun i => support (terms i)) = edges →
+    104 ≤ gs.length + k - 1

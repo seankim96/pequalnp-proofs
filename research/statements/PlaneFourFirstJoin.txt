@@ -1,0 +1,8 @@
+let V := Fin 42
+let Pair := V × V
+let incident (e : Pair) := e.1.val < 21 ∧ 21 ≤ e.2.val ∧ (e.2.val+21-e.1.val)%21 ∈ ([0,5,7,17,20] : List Nat)
+let startF (Z : Set V) := {s : Set Pair | s = ∅ ∨ ∃ v ∈ Z, ∀ e ∈ s, e.1 = v ∨ e.2 = v}
+let stepF (F : Set (Set Pair)) (r : Set Pair × Set Pair) := {s : Set Pair | s ∈ F ∨ r.1 ∈ F ∧ r.2 ∈ F ∧ s ⊆ r.1 ∪ r.2}
+∀ rs : List (Set Pair × Set Pair),
+    (∀ Z : Set V, (∀ e : Pair, incident e → e.1 ∈ Z ∨ e.2 ∈ Z) →
+      {e : Pair | incident e} ∈ rs.foldl stepF (startF Z)) → 34 ≤ rs.length
