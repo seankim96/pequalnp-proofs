@@ -50,9 +50,32 @@ private def edge (i : Nat) : Prop :=
   i ≠ 0 → parent i < 468 ∧ depth (parent i) < depth i ∧
     move ⟨generator i % 3, Nat.mod_lt _ (by decide)⟩ negative[parent i]! = negative[i]!
 private instance (i : Nat) : Decidable (edge i) := inferInstanceAs (Decidable (_ → _ ∧ _ ∧ _))
+private def valid (i : Nat) : Prop := i < 468 → edge i
+private instance (i : Nat) : Decidable (valid i) := inferInstanceAs (Decidable (_ → edge i))
+
+private theorem joinSegments (b n : Nat)
+    (lo : ∀ j : Fin n, valid (b+j.val))
+    (hi : ∀ j : Fin n, valid ((b+n)+j.val)) :
+    ∀ j : Fin (n+n), valid (b+j.val) := by
+  intro j
+  by_cases h : j.val < n
+  · exact lo ⟨j.val,h⟩
+  · have h' := hi ⟨j.val-n,by omega⟩
+    simpa only [show b+n+(j.val-n) = b+j.val by omega] using h'
+
 set_option maxRecDepth 8192 in
 set_option maxHeartbeats 0 in
-private theorem checked : ∀ i : Fin 468, edge i.val := by decide +kernel
+private theorem checked (i : Fin 468) : edge i.val := by
+  have verified : ∀ j : Fin 512, valid (0+j.val) := by
+    apply joinSegments 0 256
+    all_goals apply joinSegments _ 128
+    all_goals apply joinSegments _ 64
+    all_goals apply joinSegments _ 32
+    all_goals apply joinSegments _ 16
+    all_goals apply joinSegments _ 8
+    all_goals as_aux_lemma => decide +kernel
+  have h := verified ⟨i.val,by omega⟩
+  simpa only [Nat.zero_add] using h (by simpa only [Nat.zero_add] using i.isLt)
 end PEqualNP.Research.PlaneRawNegativeOrbit
 
 open PEqualNP.Research.PlaneRawNegativeOrbit in
