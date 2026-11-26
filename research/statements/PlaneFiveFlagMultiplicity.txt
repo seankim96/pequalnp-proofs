@@ -1,0 +1,5 @@
+let bound (k : Nat) : Nat := if k = 1 then 18 else if k = 2 then 4 else if k = 3 then 3 else if k = 4 then 2 else if k = 5 then 1 else 0
+∀ (S : Finset (Fin 52)) (endpoints : Finset (Fin 52) → Finset (Fin 468)),
+    S.card ≤ 5 →
+    (∀ t ⊆ S, (endpoints t).card ≤ bound t.card) →
+    (S.powerset.biUnion endpoints).card ≤ 171
