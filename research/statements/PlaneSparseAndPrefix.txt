@@ -1,0 +1,26 @@
+let Column := Nat → Bool
+let disj (ws : List Column) (r : Nat) := ws.any (fun w => w r)
+let both (a b : Column) (r : Nat) := a r && b r
+let wire (s : List Column) (i : Nat) := s.getD i (fun _ => false)
+let addOr (s : List Column) (g : Nat × Nat) := s ++ [fun r => wire s g.1 r || wire s g.2 r]
+let good (p a b : Nat) (w : Column) := w p = true → w a = true ∨ w b = true
+let separated (s : List Column) := ∃ n : Fin 257 → Fin 468, ∀ i j : Fin 257, i.val < j.val →
+    ∃ p : Fin 52, ∀ w ∈ s, good p.val (52 + (n i).val) (52 + (n j).val) w
+let Gate := Bool × Nat × Nat
+let step (s : List Column) (g : Gate) : List Column :=
+  if g.1 then s ++ [both (wire s g.2.1) (wire s g.2.2)] else addOr s g.2
+let guarded (s : List Column) (gs : List Gate) (flags : Nat → Bool) : Prop :=
+  ∀ xs g ys, gs = xs ++ g :: ys → g.1 = true → ∀ p : Fin 52,
+    let t := xs.foldl step s
+    both (wire t g.2.1) (wire t g.2.2) p.val = true → flags p.val = true
+
+∀ (s : List Column) (preGates tail : List Gate)
+    (flags : Nat → Bool) (excluded : Finset (Fin 468)) (out : Nat),
+    excluded.card ≤ 211 →
+    (∀ a b : Fin 468, a ∉ excluded → b ∉ excluded → a < b →
+      ∃ p : Fin 52, flags p.val = false ∧ ∀ w ∈ s, good p.val (52+a.val) (52+b.val) w) →
+    guarded s preGates flags →
+    let final := tail.foldl step (preGates.foldl step s)
+    (∀ p : Fin 52, wire final out p.val = true) →
+    (∀ n : Fin 468, wire final out (52+n.val) = false) →
+    9 ≤ tail.countP Prod.fst
