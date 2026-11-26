@@ -1,0 +1,9 @@
+∀ (n : Nat) (rows : Nat → Finset (Fin n)) (high : Fin 52 → Prop),
+  (∀ a b : Fin n, (∀ r, a ∈ rows r → b ∈ rows r) ∨
+    (∀ r, b ∈ rows r → a ∈ rows r) ∨
+    ∃ q : Fin 52, ∀ p : Fin 52, high p → a ∈ rows p.val → b ∈ rows p.val → p = q) →
+  ∀ (chains : Fin 4 → List (Finset (Fin n))), (∀ k, (chains k).Pairwise (· ⊆ ·)) →
+  ∃ S : Finset (Fin 52), S.card ≤ 4 ∧ ∀ (p : Fin 52) (i j : Nat),
+    high p → p ∉ S → (∀ a ∈ rows p.val, a ∈ rows i ∨ a ∈ rows j) →
+    ∀ f : List (Finset (Fin n)), (∀ t ∈ f, 1 < t.card → ∃ k, t ∈ chains k) →
+      (∃ t ∈ f, t ⊆ rows p.val) → (∃ t ∈ f, t ⊆ rows i) ∨ (∃ t ∈ f, t ⊆ rows j)
