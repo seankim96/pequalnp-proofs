@@ -11,3 +11,11 @@ Plane975FinalResidual: ACCEPTED (check), pinned Lean 4.36.0, 2,019 kernel consta
 ## Bounded SAT search on code 87
 
 Prefix ends in AND(2,25); the opposite ordering is code 777. CaDiCaL 2.1.2, 63 total gates, 57 free suffix slots, at least 9 suffix AND and 6 suffix OR gates. Initial 52 positive and two negative rows (combined indices 52 and 286); 16,986 variables and 561,962 clauses. One model of the 54-row relaxation failed the full 520-row test. Added two counterexamples; the next 56-row CNF had 17,328 variables and 582,712 clauses. Total 60 seconds, verdict UNKNOWN (timeout). No unrestricted or prefix-specific 63-gate exclusion. The kernel certificate used no SAT solver.
+
+Plane975AllSixthAndBudget: ACCEPTED (check), 3,956 kernel constants. Its manifest's 20 research modules and 86 definition hashes matched. This single theorem imports the earlier certificates and checks the exhaustive split. For every ordered sixth AND, every separating suffix needs at least nine ANDs, six ORs and 15 gates in total. With the prefix these circuits have at least 21 gates.
+
+## Every sixth OR
+
+Plane975AllSixthOrBudget: ACCEPTED (check), 1,989 kernel constants. The starting negative-pair witnesses are preserved by appending any OR column. For the OR lower bound, for each of the 31 possible left inputs the certificate supplies 33 distinct positive rows where it is false. On these rows the new OR behaves like its right input; any negative witness true on the right input also satisfies the new OR. A kernel-checked table covers all 1,326 distinct pairs among the 52 positives in the pre-OR state. Hence each of the 961 sixth OR choices also requires at least nine ANDs and six ORs strictly after the sixth gate. In conjunction with the sixth-AND theorem, all 1,922 ordered binary sixth choices after these five fixed gates require at least 21 gates including the prefix.
+
+Next work should advance past the sixth gate or strengthen the operator counts. No sixth-AND family remains pending for this nine-AND bound. The 63-gate existence problem stays open.
