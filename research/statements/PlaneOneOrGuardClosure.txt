@@ -1,0 +1,19 @@
+let Column := Nat → Bool
+let Gate := Bool × Nat × Nat
+let wire (s : List Column) (i : Nat) : Column := s.getD i (fun _ => false)
+let prod (x y : Column) : Column := fun t => x t && y t
+let joinWire (x y : Column) : Column := fun t => x t || y t
+let step (s : List Column) (g : Gate) : List Column :=
+  let x := wire s g.2.1
+  let y := wire s g.2.2
+  s ++ [if g.1 then prod x y else joinWire x y]
+let cheap (j : Nat) (g : Gate) := g.1 = true ∧ (g.2.1 = j ∨ g.2.2 = j)
+let raw (s : List Column) (j : Nat) (w : Column) : Prop :=
+  ∃ i : Nat, w = wire s i ∨ w = prod (wire s i) (wire s j)
+∀ (s : List Column) (j : Nat), j < s.length →
+    ∀ (xs ys : List Gate) (a b : Nat),
+    (∀ g ∈ xs, cheap j g) → (∀ g ∈ ys, cheap j g) →
+    ∃ x y : Column, raw s j x ∧ raw s j y ∧
+      ∀ i : Nat,
+        let w := wire (ys.foldl step (step (xs.foldl step s) (false,a,b))) i
+        raw s j w ∨ w = joinWire x y ∨ w = prod (joinWire x y) (wire s j)

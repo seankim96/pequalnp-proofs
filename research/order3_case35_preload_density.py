@@ -42,13 +42,19 @@ def evaluator(pool):
     all_pos=(1<<52)-1
     guard_off=[j for j in range(468) if not pool[32]>>(52+j)&1]
 
-    def budget(value, dominated):
+    masks = [sum(1 << p for p in selected) for selected in packs]
+
+    def budget(value, dominated, lower=0):
+        if lower & ~value:
+            raise ValueError("preload lower envelope must be contained in the upper envelope")
         # In the dominated case V can be any column below value. Delete
         # all potentially unsafe positive witnesses and keep at most one
         # potentially active flag per packing, independent of V.
         reduced=graph & np.uint64(all_pos^(value&all_pos))
         off=np.array([not value>>(52+j)&1 for j in range(468)])
-        f=reduced if dominated else np.where(off[:,None]&off,reduced,graph)
+        min_value = lower if dominated else value
+        can_be_false = np.array([not min_value >> (52+j) & 1 for j in range(468)]) if dominated else off
+        f = np.where(can_be_false[:,None] & can_be_false, reduced, graph) if min_value else reduced
         K=greedy_family(f,widths)
         k=len(K)
         if k<=160 or not family(f,guard_off,129):
@@ -60,15 +66,16 @@ def evaluator(pool):
             ones=sum(c>>(52+j)&1 for j in K)
             if max(ones,k-ones)<129 and c not in constants(f,[c]):
                 mass-=min(ones,128)
-        if dominated and not family(f,np.flatnonzero(off).tolist(),129):
+        if (dominated and not family(f,np.flatnonzero(off).tolist(),129)
+                and not family(f,np.flatnonzero(~can_be_false).tolist(),129)):
             mass-=min(128,sum(value>>(52+j)&1 for j in K))
         total=0
         for j in K:
-            if dominated:
-                total+=len(packs[j])-max(0,sum(value>>p&1 for p in packs[j])-1)
-            else:
-                packing(pool+[value],(j,packs[j]))
-                total+=len(packs[j])
+            # On a negative where the extra input may be false, retain at
+            # most one of the flags it can hit. Every old column stays valid
+            # on the thinned packing. An exact true input needs no thinning.
+            hits = (value & masks[j]).bit_count() if can_be_false[j] else 0
+            total += len(packs[j]) - max(0, hits - 1)
         return k,(mass+total+k-1)//k-1
 
     return budget

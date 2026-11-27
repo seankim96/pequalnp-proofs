@@ -69,3 +69,44 @@ python research/order3_prefix_search.py --case 35 --third AND 15 27 --fourth AND
 - PlaneNegativeOrBudget — ACCEPTED (check), 1742 constants; axioms propext, Quot.sound, Classical.choice. [One-file comparison](https://github.com/open-goat/pequalnp-proofs/compare/main...seankim96:pequalnp-proofs:research/l-meta-2625-case35-negative-or-budget?expand=1).
 - The manifest hashes matched all 87 upstream definition modules, and each separately expanded statement compiled against the checked module. The port classification, concrete finite replay and preload sweeps above are computational applications. No whole-branch or unrestricted 63-gate theorem is claimed as checker-accepted.
 - Resume at the full 13-gate prefix with h=24 (150 s UNKNOWN), OR(14,18)/AND(1,39) with h=22 or OR(13,19)/AND(1,39) with h=23 (both 120 s UNKNOWN). The next structural target is the first paid AND after the 13-gate prefix, which must use a later wire and have at least three positive hits.
+
+
+
+
+## Ordering of the first paid AND at h=24
+
+The first paid AND requires **at least three suffix OR gates before it**, even if arbitrarily many guard ANDs are interspersed. This only concerns the size-63, thirteen-gate prefix at h=24. It puts the earliest possible first paid AND at gate 17. It also excludes every enumerated output signature for any of the nine paid gates, independently of its position.
+
+Let B be the 39 starting columns together with their masks by the guard. It has 66 distinct signatures on the 520 rows and is closed under masking. Let U2 and U3 be unions of at most two or three B terms (repetition allowed). They have 2,032 and 39,270 signatures. Each U3 value can replace a paid gate at the cost of at most two extra ORs and any number of guard ANDs. The resulting eight-paid circuit would have at most 21 ORs, below its certified floor of 24. The unrestricted number of guard ANDs is important in this replacement argument.
+
+Before the first paid AND, all intervening AND gates simply mask by the guard. With two independent ORs, either operand of a following paid gate lies in U2. If the second OR depends on the first, write the first result as u. After distributing masks the second is a union of at most three B terms. Its product with a B term lies in B∩U3 (here ∩ denotes taking the bitwise product of one term from each family). Its product with a masked or unmasked u either simplifies by absorption or has the form u∩(guard∪b), with b in B. The latter is in U2∩U2, and a final mask is distributed onto either operand. If both operands descend from the second OR, their product is that OR or its masked copy, already in U3. These alternatives also cover zero or one OR by repetition. This bounds the complete grammar, including reused physical wires.
+
+For one OR alone, the 66 masked initial signatures give 721 no-OR products and 30,462 one-OR candidates after removing immediate copies; 98 residual signatures each need at least 24 ORs after exact preloading. For two ORs, remove U3, signatures with at most two positive bits, and signatures covered by a certified dominating column. The U2×U2 products leave 28,072 candidates and the B×U3 products leave 2,335. Their union has 30,317 distinct signatures in 2,447 positive support classes. The interval replay groups equal positive masks, combining the bitwise intersection and union of each block as lower and upper bounds for its hypothetical preloaded input. A positive witness may keep a newly introduced true bit whenever either negative is forced true; otherwise it must avoid the upper mask. The same lower envelope identifies packings needing no thinning. If a block does not close, split it and eventually check a singleton. Exactly 30,312 signatures were excluded this way in 2,451 interval evaluations.
+
+Five exceptional values each accept three positives and no negatives. For a 161–192 clique, a probe selected from an earlier paid AND implies a distinct earlier bit, making that probe true on at most 64 codewords. Two receivers cannot both use paid-output probes, because the two implications would permit at most 160 codes. In each orientation use the smaller of the unrestricted minimum weight and the minimum weight among words obeying one implication minus 64. For a guard-false clique of size m>64, guard-AND inputs likewise can occur at just one receiver. If m≤128 and such an input occurs, a probe at any other gate must hit between m−64 and 64 of that clique: pinning the guard probe at zero leaves at most 64 different codes for each value of another bit. Bound the cost of all balanced raw wires plus the largest exceptions fitting in the remaining ports of that receiver. Check all possibilities of zero, one and two guard-AND ports. Every finite pair witness and flag packing in the five explicit certificates is rechecked.
+
+| Positive row IDs (zero-based) | Negative hits | Clique size | Certified OR floor after preloading |
+| --- | ---: | ---: | ---: |
+| 9, 12, 28 | 0 | 173 | 21 |
+| 10, 18, 36 | 0 | 175 | 21 |
+| 27, 34, 37 | 0 | 167 | 20 |
+| 19, 26, 45 | 0 | 174 | 21 |
+| 39, 47, 51 | 0 | 175 | 21 |
+
+These floors all exceed the 19 ORs in a candidate h=24 continuation. Reproduce with `python research/order3_case35_two_or_preloads.py`. Only integer checks on stored certificates are required at replay time. The optimization routine that proposed the exceptional families is outside the trusted calculation.
+
+`PlaneOneOrGuardClosure` formalizes the physical one-OR normal form for any number of guard ANDs before and after it. ACCEPTED (check), 1,735 rechecked constants, axioms propext, Quot.sound, Classical.choice. The exact expanded type compiled and the manifest matched all 87 definition modules on the upstream commit. [One-file comparison](https://github.com/open-goat/pequalnp-proofs/compare/main...seankim96:pequalnp-proofs:research/l-meta-2625-case35-one-or-closure?expand=1). The two-OR classification and the resulting h=24 exclusion are finite computational reductions.
+
+Additional runs use the common invocation above, with H=24.
+
+| Additional options | Budget | Verdict |
+| --- | ---: | --- |
+| `--preloaded-trace --guard-read-ceiling --or-trace-density --fourteenth OR 0 3 --fifteenth AND 27 39 --sparse-density` | 60 s | UNKNOWN, 56 encoded rows, 0 decoded candidates |
+| `--preloaded-trace --guard-read-ceiling --or-trace-density --fourteenth OR 0 3 --fifteenth AND 27 39 --first-paid-order` | 10 s | UNSAT on 56 rows (solver result) |
+| `--preloaded-trace --guard-read-ceiling --or-trace-density --first-paid-order` | 150 s | UNKNOWN, 56 encoded rows, 0 decoded candidates |
+| `--preloaded-trace --guard-read-ceiling --or-trace-density --fourteenth OR 0 3 --fifteenth OR 4 6 --after-fifteen AND 39 40 --first-paid-order` | 90 s | UNKNOWN, 56 encoded rows, 0 decoded candidates |
+| `--preloaded-trace --guard-read-ceiling --or-trace-density --fourteenth OR 0 3 --fifteenth OR 4 6 --after-fifteen AND 39 40 --three-before-paid` | 10 s | UNSAT on 56 rows (solver result) |
+| `--preloaded-trace --guard-read-ceiling --or-trace-density --fourteenth OR 19 21 --fifteenth OR 22 39 --after-fifteen AND 9 40 --three-before-paid` | 10 s | UNSAT on 56 rows (solver result) |
+| `--preloaded-trace --guard-read-ceiling --or-trace-density --three-before-paid` | 150 s | UNKNOWN, 56 encoded rows, 0 decoded candidates |
+
+Next open frontier: the 13-gate h=24 prefix with at least three suffix ORs before the first paid AND, positive support at least three for each paid gate, and the 25 dominating-column exclusions. Test the first paid gate after exactly three ORs.
