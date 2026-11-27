@@ -101,7 +101,8 @@ def constrain(model, rows, h):
     if h < 20 or model.size != 63 or model.prefix[:17] != PREFIX13 + POINT7 or len(rows) != 520:
         return
     base = tuple(columns(model.prefix[:17],rows))
-    closed = proved(base) | {exclude_two_three(base)} | cross_bank_exclusions(base)
+    from order3_case35_point_seven_paired import exclusions
+    closed = proved(base) | {exclude_two_three(base)} | cross_bank_exclusions(base) | exclusions(base)
     pool = columns(model.prefix,rows)
     for i,(op,_,_) in enumerate(model.prefix[17:],43):
         if not op and pool[i] in closed:
