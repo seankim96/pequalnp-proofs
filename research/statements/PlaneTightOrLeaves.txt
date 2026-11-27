@@ -1,0 +1,18 @@
+let Column := Nat → Bool
+let Gate := Bool × Nat × Nat
+let wire (s : List Column) (i : Nat) := s.getD i (fun _ => false)
+let mix (op : Bool) (x y : Column) : Column := fun r => if op then x r && y r else x r || y r
+let newWire (s : List Column) (g : Gate) := mix g.1 (wire s g.2.1) (wire s g.2.2)
+let step (s : List Column) (g : Gate) := s ++ [newWire s g]
+let live {m : Nat} (flag : Fin m → Nat) (t : Nat) (w : Column) : Prop :=
+  w t = false ∧ ∃ i, w (flag i) = true
+∀ (m : Nat) (F : Nat → Fin m → Nat) (T : Nat → Nat) (R : Column → Prop)
+    (s : List Column) (gs : List Gate) (o p : Nat),
+    (∀ k i, wire s i (T k) = false → (Finset.univ.filter (fun a : Fin m => wire s i (F k a))).card ≤ 1) →
+    (∀ i, R (wire s i)) →
+    (∀ x y, R x → R y → R (mix true x y)) →
+    (∀ w, R w → w p = true → ¬ (∀ k, live (F k) (T k) w)) →
+    (∀ k a, wire (gs.foldl step s) o (F k a) = true) →
+    (∀ k, wire (gs.foldl step s) o (T k) = false) →
+    wire (gs.foldl step s) o p = true → 0 < m →
+    m ≤ gs.countP (fun g => !g.1)
