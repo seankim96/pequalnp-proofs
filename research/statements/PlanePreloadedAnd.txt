@@ -1,0 +1,15 @@
+let C := Nat → Bool
+let G := Bool × Nat × Nat
+let wire (s : List C) (i : Nat) := s.getD i (fun _ => false)
+let val (s : List C) (g : G) : C := fun r =>
+  if g.1 then wire s g.2.1 r && wire s g.2.2 r else wire s g.2.1 r || wire s g.2.2 r
+let step (s : List C) (g : G) := s ++ [val s g]
+let paid (k : Nat) (g : G) := g.1 && !(g.2.1 == k || g.2.2 == k)
+let hit (a b : Nat) (g : G) := g.1 && ((g.2.1 == a && g.2.2 == b) || (g.2.1 == b && g.2.2 == a))
+let sep (s : List C) (o : Nat) := (∀ p : Fin 52, wire s o p.val = true) ∧
+  (∀ j : Fin 468, wire s o (52+j.val) = false)
+∀ (s : List C) (a b k lower : Nat), a < s.length → b < s.length → a ≠ k → b ≠ k →
+  (∀ (gs : List G) (o : Nat), sep (gs.foldl step (val s (true,a,b) :: s)) o →
+    lower ≤ gs.countP (paid (k+1))) →
+  ∀ (gs : List G) (o : Nat), sep (gs.foldl step s) o →
+    lower + gs.countP (hit a b) ≤ gs.countP (paid k)
