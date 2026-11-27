@@ -143,10 +143,12 @@ class Encoding:
             for clause in self.clauses:
                 stream.write(" ".join(map(str, clause)) + " 0\n")
 
-    def read_model(self, true: set[int]) -> list[Gate]:
+    def read_model(self, true: set[int], prefer_guard: bool = False) -> list[Gate]:
         # Several selectors may be true. Their input values must agree on
         # every encoded row, so choosing any one of them preserves the model.
         def index(choices):
+            if prefer_guard and choices[32] in true:
+                return 32
             return next(i for i, variable in enumerate(choices) if variable in true)
         return list(self.prefix) + [(g.is_and in true, index(g.left), index(g.right)) for g in self.gates]
 
@@ -158,7 +160,7 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
            sixth: Gate | None = None, seventh: Gate | None = None,
            eighth: Gate | None = None, ninth: Gate | None = None,
            negative_seeds: tuple[int, ...] = (), *, tenth: Gate | None = None,
-           shared_guard_budget: bool = False) -> str:
+           shared_guard_budget: bool = False, min_guard_reads: int = 0) -> str:
     rows = test_rows()
     if point_quadrangles:
         point_mask = (1 << 13) - 1
@@ -195,13 +197,16 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
         prefix += (gate,)
         label += f" then {'AND' if op else 'OR'}({a},{b})"
     model = Encoding(prefix, 63)
-    guarded_prefix = (prefix[:6] == ((False, 0, 1), (False, 3, 9), (True, 15, 27),
-                                     (True, 17, 26), (True, 13, 26), (True, 13, 27))
-                      and seventh is not None and not seventh[0] and seventh[1:] in CASE35_GUARDS)
+    canonical_six = (prefix[:6] == ((False, 0, 1), (False, 3, 9), (True, 15, 27),
+                                     (True, 17, 26), (True, 13, 26), (True, 13, 27)))
+    guarded_prefix = canonical_six and seventh is not None and not seventh[0] and seventh[1:] in CASE35_GUARDS
+    rescued_prefix = canonical_six and seventh == (False, 2, 6) and eighth == (True, 1, 24)
     if shared_guard_budget:
-        if point_quadrangles or not guarded_prefix:
-            raise ValueError("shared guard budget requires the canonical six and a menu OR at gate 7 on all tests")
-        spent = sum(op and 32 not in (a, b) for op, a, b in prefix[7:])
+        if point_quadrangles or not (guarded_prefix or rescued_prefix):
+            raise ValueError("shared guard budget requires a certified shared-guard prefix on all tests")
+        # The rescued prefix already incorporates gate eight in its certificate.
+        paid_from = 8 if rescued_prefix else 7
+        spent = sum(op and 32 not in (a, b) for op, a, b in prefix[paid_from:])
         charged = []
         for g in model.gates:
             # A charged witness must be an AND and neither selected operand may
@@ -212,6 +217,22 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
             model.clause(-mark, -g.right[32])
             charged.append(mark)
         model.require_at_least(charged, max(0, 9 - spent))
+    if min_guard_reads:
+        if not shared_guard_budget or not 0 < min_guard_reads <= 56:
+            raise ValueError("minimum guard reads requires a certified guard and a count in 1..56")
+        fixed_reads = sum(op and 32 in (a, b) for op, a, b in prefix[7:])
+        needed = max(0, min_guard_reads - fixed_reads)
+        reads = []
+        for g in model.gates:
+            mark = model.fresh()
+            model.clause(-mark, g.is_and)
+            model.clause(-mark, g.left[32], g.right[32])
+            reads.append(mark)
+        if needed > len(reads):
+            model.clause()
+        else:
+            model.require_at_least(reads, needed)
+        label += f" with at least {min_guard_reads} ANDs reading wire 32"
     if (prune_tail and not point_quadrangles and len(prefix) == 4 and
             prefix[:3] == ((True, 0, 13), (False, 0, 14), (True, 1, 13))):
         # PlaneFlagAndTail and PlaneFlagOrTail exclude each homogeneous suffix.
@@ -310,7 +331,9 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
                 raise RuntimeError(f"solver exited with {result.returncode}: {result.stderr[-500:]}")
             true = {int(v) for line in result.stdout.splitlines() if line.startswith("v ")
                     for v in line.split()[1:] if int(v) > 0}
-            gates = model.read_model(true)
+            gates = model.read_model(true, prefer_guard=bool(min_guard_reads))
+            if min_guard_reads and sum(op and 32 in (a, b) for op, a, b in gates[7:]) < min_guard_reads:
+                raise ValueError("decoded model violates guard reuse constraint")
             candidates += 1
             wrong = [i for i, (r, y) in enumerate(rows) if evaluate(gates, r) != y]
             if not wrong:
@@ -366,6 +389,8 @@ def main():
                         help="apply certified full-row lower bounds on AND and OR counts")
     parser.add_argument("--shared-guard-budget", action="store_true",
                         help="require nine ANDs excluding reads of the certified gate-seven OR output")
+    parser.add_argument("--min-guard-reads", type=int, default=0,
+                        help="restrict the search to circuits reusing wire 32 in at least this many ANDs")
     args = parser.parse_args()
     if args.operator_bounds and args.point_quadrangles:
         parser.error("--operator-bounds requires the full row set")
@@ -419,7 +444,7 @@ def main():
         parser.error("--seconds must be positive")
     print(search(args.case, args.seconds, args.solver, args.witness, args.all_positives,
                  args.point_quadrangles, args.zero_third, third, fourth, not args.no_tail_pruning, args.operator_bounds, *extra_gates[:5], negative_seeds=tuple(args.negative_seed), tenth=extra_gates[5],
-                 shared_guard_budget=args.shared_guard_budget))
+                 shared_guard_budget=args.shared_guard_budget, min_guard_reads=args.min_guard_reads))
 
 
 if __name__ == "__main__":
