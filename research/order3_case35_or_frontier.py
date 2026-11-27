@@ -154,7 +154,23 @@ def latest_exclusions(base):
     five_eight = _exclude_before_fourth(base, (5,8), prior, "case35-point-seven-5-8-search.json.gz", 29)
     prior = prior | {five_eight}
     five_fifteen = _exclude_before_fourth(base, (5,15), prior, "case35-point-seven-5-15-search.json.gz", 12)
-    return prior | {five_fifteen}
+    prior = prior | {five_fifteen}
+    four_twenty_two = _exclude_before_fourth(base, (4,22), prior, "case35-point-seven-4-22-search.json.gz", 14)
+    prior = prior | {four_twenty_two}
+    four_twenty_three = _exclude_before_fourth(base, (4,23), prior, "case35-point-seven-4-23-search.json.gz", 2)
+    prior = prior | {four_twenty_three}
+    with (ROOT / "case35-point-seven-additional-first-ors.json").open() as stream:
+        batch = json.load(stream)
+    for a, b, seconds, triples in batch:
+        if not 0 <= a <= b < len(base):
+            raise ValueError("invalid first OR operands")
+        x = _exclude_before_fourth(base, (a,b), prior,
+                                  f"case35-point-seven-{a}-{b}-search.json.gz",
+                                  triples, expected_seconds=seconds)
+        if x in prior:
+            raise ValueError("duplicate first OR in cumulative ledger")
+        prior = prior | {x}
+    return prior
 
 
 def _exclude_before_fourth(base, first, prior, filename, count, expected_seconds=None, *, cross_records=()):
