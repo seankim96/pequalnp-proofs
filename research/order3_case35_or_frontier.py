@@ -130,16 +130,32 @@ def fourth_stage_exclusions(base):
 def latest_exclusions(base):
     prior = fourth_stage_exclusions(base)
     first = _exclude_before_fourth(base, (4,8), prior, "case35-point-seven-4-8-search.json.gz", 18)
-    return prior | {first}
+    prior = prior | {first}
+    four_ten = _exclude_before_fourth(base, (4,10), prior, "case35-point-seven-4-10-search.json.gz", 28)
+    prior = prior | {four_ten}
+    with gzip.open(ROOT / "case35-crossed-empty-thirds.json.gz", "rt") as stream:
+        entries = json.load(stream)
+    extra = set()
+    for a, b, seconds, crosses in entries:
+        if not (0 <= a <= b < len(base) and seconds > 0):
+            raise ValueError("invalid empty-third entry")
+        x = _exclude_before_fourth(base, (a,b), prior, None, 0, seconds,
+                                   cross_records=crosses)
+        if x in extra:
+            raise ValueError("repeated first union")
+        extra.add(x)
+    prior = prior | extra
+    ten_fifteen = _exclude_before_fourth(base, (10,15), prior, "case35-point-seven-10-15-search.json.gz", 4)
+    return prior | {ten_fifteen}
 
 
-def _exclude_before_fourth(base, first, prior, filename, count, expected_seconds=None):
+def _exclude_before_fourth(base, first, prior, filename, count, expected_seconds=None, *, cross_records=()):
     from order3_case35_star_preloads import eight_paid_floor
     from order3_case35_point_seven_or_order import after_one, dominates
 
     x = base[first[0]] | base[first[1]]
     after_one(base,x)
-    ledger = []
+    ledger = {"triples": [], "crosses": cross_records}
     if filename is not None:
         with gzip.open(ROOT / filename, "rt") as stream:
             ledger = json.load(stream)
