@@ -160,7 +160,8 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
            sixth: Gate | None = None, seventh: Gate | None = None,
            eighth: Gate | None = None, ninth: Gate | None = None,
            negative_seeds: tuple[int, ...] = (), *, tenth: Gate | None = None,
-           shared_guard_budget: bool = False, min_guard_reads: int = 0) -> str:
+           shared_guard_budget: bool = False, min_guard_reads: int = 0,
+           semantic_boundary: bool = False, semantic_budget: bool = False, eleventh: Gate | None = None) -> str:
     rows = test_rows()
     if point_quadrangles:
         point_mask = (1 << 13) - 1
@@ -188,7 +189,7 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
         label += f" then {'AND' if op else 'OR'}({a},{b})"
     for name, gate, position in (("fifth", fifth, 5), ("sixth", sixth, 6),
                                  ("seventh", seventh, 7), ("eighth", eighth, 8), ("ninth", ninth, 9),
-                                 ("tenth", tenth, 10)):
+                                 ("tenth", tenth, 10), ("eleventh", eleventh, 11)):
         if gate is None:
             continue
         op, a, b = gate
@@ -233,6 +234,16 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
         else:
             model.require_at_least(reads, needed)
         label += f" with at least {min_guard_reads} ANDs reading wire 32"
+    if semantic_budget:
+        if not rescued_prefix or point_quadrangles:
+            raise ValueError("semantic budget requires the rescued eight-gate prefix and all tests")
+        from order3_case35_semantic_reuse import cap_flexible
+        cap_flexible(model, rows)
+    if semantic_boundary:
+        if not rescued_prefix or not shared_guard_budget or min_guard_reads < 28:
+            raise ValueError("semantic pruning requires the rescued prefix and at least 28 guard reads")
+        from order3_case35_semantic_reuse import prune_boundary
+        prune_boundary(model, rows)
     if (prune_tail and not point_quadrangles and len(prefix) == 4 and
             prefix[:3] == ((True, 0, 13), (False, 0, 14), (True, 1, 13))):
         # PlaneFlagAndTail and PlaneFlagOrTail exclude each homogeneous suffix.
@@ -383,6 +394,12 @@ def main():
                         help="fix a ninth binary gate after the eighth")
     parser.add_argument("--tenth", nargs=3, metavar=("OP", "LEFT", "RIGHT"),
                         help="fix a tenth binary gate after the ninth")
+    parser.add_argument("--eleventh", nargs=3, metavar=("OP", "LEFT", "RIGHT"),
+                        help="fix the eleventh gate after the tenth")
+    parser.add_argument("--semantic-budget", action="store_true",
+                        help="cap provably flexible gates without a minimum guard reuse count")
+    parser.add_argument("--semantic-boundary", action="store_true",
+                        help="exclude non-guard gates with interchangeable implementations at the 28-read boundary")
     parser.add_argument("--no-tail-pruning", action="store_true",
                         help="omit the two certified gate-type clauses when replaying earlier runs")
     parser.add_argument("--operator-bounds", action="store_true",
@@ -420,7 +437,7 @@ def main():
             parser.error("expected 0 <= LEFT <= RIGHT < 29")
     extra_gates = []
     previous = fourth
-    for position, name in enumerate(("fifth", "sixth", "seventh", "eighth", "ninth", "tenth"), start=5):
+    for position, name in enumerate(("fifth", "sixth", "seventh", "eighth", "ninth", "tenth", "eleventh"), start=5):
         operand_spec = getattr(args, name)
         gate = None
         if operand_spec:
@@ -444,7 +461,8 @@ def main():
         parser.error("--seconds must be positive")
     print(search(args.case, args.seconds, args.solver, args.witness, args.all_positives,
                  args.point_quadrangles, args.zero_third, third, fourth, not args.no_tail_pruning, args.operator_bounds, *extra_gates[:5], negative_seeds=tuple(args.negative_seed), tenth=extra_gates[5],
-                 shared_guard_budget=args.shared_guard_budget, min_guard_reads=args.min_guard_reads))
+                 shared_guard_budget=args.shared_guard_budget, min_guard_reads=args.min_guard_reads,
+                 semantic_boundary=args.semantic_boundary, semantic_budget=args.semantic_budget, eleventh=extra_gates[6]))
 
 
 if __name__ == "__main__":
