@@ -73,6 +73,8 @@ python research/order3_prefix_search.py --case 35 --third AND 15 27 --fourth AND
 
 
 
+
+
 ## Ordering of the first paid AND at h=24
 
 The first paid AND requires **at least three suffix OR gates before it**, even if arbitrarily many guard ANDs are interspersed. This only concerns the size-63, thirteen-gate prefix at h=24. It puts the earliest possible first paid AND at gate 17. It also excludes every enumerated output signature for any of the nine paid gates, independently of its position.
@@ -108,5 +110,10 @@ Additional runs use the common invocation above, with H=24.
 | `--preloaded-trace --guard-read-ceiling --or-trace-density --fourteenth OR 0 3 --fifteenth OR 4 6 --after-fifteen AND 39 40 --three-before-paid` | 10 s | UNSAT on 56 rows (solver result) |
 | `--preloaded-trace --guard-read-ceiling --or-trace-density --fourteenth OR 19 21 --fifteenth OR 22 39 --after-fifteen AND 9 40 --three-before-paid` | 10 s | UNSAT on 56 rows (solver result) |
 | `--preloaded-trace --guard-read-ceiling --or-trace-density --three-before-paid` | 150 s | UNKNOWN, 56 encoded rows, 0 decoded candidates |
+| `--preloaded-trace --guard-read-ceiling --or-trace-density --fourteenth OR 17 19 --fifteenth OR 20 24 --after-fifteen OR 39 40 --after-fifteen AND 7 41 --three-before-paid` | 120 s | UNKNOWN, 56 encoded rows, 0 decoded candidates |
 
-Next open frontier: the 13-gate h=24 prefix with at least three suffix ORs before the first paid AND, positive support at least three for each paid gate, and the 25 dominating-column exclusions. Test the first paid gate after exactly three ORs.
+Next open frontier: the 13-gate h=24 prefix with at least three suffix ORs before the first paid AND, positive support at least three for each paid gate, and the 25 dominating-column exclusions. A concrete surviving test is OR(17,19), OR(20,24), OR(39,40), AND(7,41): it computes the four flags at point 7 and was UNKNOWN in 120 solver seconds. Assess this specific preload or vary the third OR.
+
+### Verification limit for the concrete combined file
+
+A case-specific Lean file in `research/drafts/PlaneCase35ProbeDensity.lean` compiles with the pinned toolchain and its expanded statement compiles independently. It includes the physical 39 columns, 218 negative rows, the 3,862-flag incidence count, and the conditional 24-OR theorem under two supplied injective eight-bit orientations at sixteen distinct OR ports. The repository checker built this file, but the verifier exited 137 on both runs. Its checker verdict is **CHECKER FAULT**, with no ACCEPTED verdict. The raw port-classification and first-paid exclusions remain finite replays. The draft and its exact statement are retained so the next run can reduce the kernel replay cost. To reproduce, copy the draft to `lean/PEqualNP/Research/PlaneCase35ProbeDensity.lean` on the checked upstream commit and run the repository checker on it with the adjacent statement.
