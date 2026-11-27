@@ -163,7 +163,7 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
            shared_guard_budget: bool = False, min_guard_reads: int = 0,
            semantic_boundary: bool = False, semantic_budget: bool = False, dominating_guard: bool = False, normalize_guard: bool = False, eleventh: Gate | None = None,
            twelfth: Gate | None = None, wire_credit: bool = False, adaptive_charge: bool = False, trace_budget: bool = False,
-           gate14_trace: bool = False, preloaded_trace: bool = False,
+           gate14_trace: bool = False, preloaded_trace: bool = False, first_or_lines: bool = False, guard_read_ceiling: bool = False, branch_packing_tree: bool = False,
            thirteenth: Gate | None = None, fourteenth: Gate | None = None, fifteenth: Gate | None = None) -> str:
     rows = test_rows()
     if point_quadrangles:
@@ -238,6 +238,15 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
         else:
             model.require_at_least(reads, needed)
         label += f" with at least {min_guard_reads} ANDs reading wire 32"
+    if branch_packing_tree:
+        from order3_case35_first_or import constrain_branch_tree
+        constrain_branch_tree(model, rows, min_guard_reads)
+    if guard_read_ceiling:
+        from order3_case35_first_or import constrain_ceiling
+        constrain_ceiling(model, rows, min_guard_reads)
+    if first_or_lines:
+        from order3_case35_first_or import constrain as constrain_first_or
+        constrain_first_or(model, rows, min_guard_reads)
     if preloaded_trace:
         if point_quadrangles:
             raise ValueError("preloaded trace requires the complete target")
@@ -435,6 +444,12 @@ def main():
     parser.add_argument("--thirteenth", nargs=3, metavar=("OP", "LEFT", "RIGHT"))
     parser.add_argument("--fourteenth", nargs=3, metavar=("OP", "LEFT", "RIGHT"))
     parser.add_argument("--fifteenth", nargs=3, metavar=("OP", "LEFT", "RIGHT"))
+    parser.add_argument("--branch-packing-tree", action="store_true",
+                        help="certify the residual 19 ORs after gate fourteen OR(14,18)")
+    parser.add_argument("--guard-read-ceiling", action="store_true",
+                        help="use both OR packings to bound guard reads after the thirteen-gate prefix")
+    parser.add_argument("--first-or-lines", action="store_true",
+                        help="apply the first-OR line pair and two gate-15 trace classifications")
     parser.add_argument("--preloaded-trace", action="store_true",
                         help="apply the certified fixed-pair multiplicity bound across the suffix")
     parser.add_argument("--gate14-trace", action="store_true",
@@ -518,7 +533,7 @@ def main():
                  semantic_boundary=args.semantic_boundary, semantic_budget=args.semantic_budget, dominating_guard=args.dominating_guard, normalize_guard=args.normalize_guard, eleventh=extra_gates[6],
                  twelfth=extra_gates[7], wire_credit=args.wire_credit, adaptive_charge=args.adaptive_charge, trace_budget=args.trace_budget, gate14_trace=args.gate14_trace,
                  thirteenth=extra_gates[8], fourteenth=extra_gates[9], fifteenth=extra_gates[10],
-                 preloaded_trace=args.preloaded_trace))
+                 preloaded_trace=args.preloaded_trace, first_or_lines=args.first_or_lines, guard_read_ceiling=args.guard_read_ceiling, branch_packing_tree=args.branch_packing_tree))
 
 
 if __name__ == "__main__":
