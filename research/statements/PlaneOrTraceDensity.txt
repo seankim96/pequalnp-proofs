@@ -1,0 +1,25 @@
+let Column := Nat → Bool
+let Gate := Bool × Nat × Nat
+let wire (s : List Column) (i : Nat) := s.getD i (fun _ => false)
+let mix (op : Bool) (x y : Column) : Column := fun r => if op then x r && y r else x r || y r
+let newWire (s : List Column) (g : Gate) := mix g.1 (wire s g.2.1) (wire s g.2.2)
+let step (s : List Column) (g : Gate) := s ++ [newWire s g]
+let charge (t : Nat) (s : List Column) (g : Gate) := (!g.1 && !(newWire s g t)).toNat
+let cost (t : Nat) (s : List Column) (gs : List Gate) : Nat :=
+  (gs.foldl (fun z g => (step z.1 g,z.2 + charge t z.1 g)) (s,0)).2
+let orWires (s : List Column) (gs : List Gate) : List Column :=
+  gs.foldr (fun g next state =>
+    let rest := next (step state g)
+    if g.1 then rest else newWire state g :: rest) (fun _ => []) s
+∀ (s : List Column) (gs : List Gate) (o : Nat)
+    (row width : Fin 218 → Nat) (flag : (k : Fin 218) → Fin (width k) → Nat),
+    3862 ≤ ∑ k, width k →
+    (∀ k i, wire s i (row k) = false →
+      (Finset.univ.filter (fun p : Fin (width k) => wire s i (flag k p))).card ≤ 1) →
+    (∀ k p, wire (gs.foldl step s) o (flag k p) = true) →
+    (∀ k, wire (gs.foldl step s) o (row k) = false) →
+    let ws := orWires s gs
+    ∀ (port : Fin 2 × Fin 8 → Fin ws.length) (words : Fin 2 → Fin 218 → Fin 256),
+    Function.Injective port → (∀ b, Function.Injective (words b)) →
+    (∀ b i k, (words b k).val.testBit i.val = (ws.get (port (b,i))) (row k)) →
+    24 ≤ ws.length
