@@ -126,6 +126,13 @@ def fourth_stage_exclusions(base):
     return frozenset(closed)
 
 
+@lru_cache(maxsize=1)
+def latest_exclusions(base):
+    prior = fourth_stage_exclusions(base)
+    first = _exclude_before_fourth(base, (4,8), prior, "case35-point-seven-4-8-search.json.gz", 18)
+    return prior | {first}
+
+
 def _exclude_before_fourth(base, first, prior, filename, count, expected_seconds=None):
     from order3_case35_star_preloads import eight_paid_floor
     from order3_case35_point_seven_or_order import after_one, dominates
@@ -198,6 +205,24 @@ def _exclude_before_fourth(base, first, prior, filename, count, expected_seconds
     return x
 
 
+def replay_four_ten_probe(base):
+    """Fourth-union and product-dominance tests for one (4,10) continuation."""
+    from order3_case35_point_seven_shared_unions import dominates
+
+    x, y, z = base[4] | base[10], base[13] | base[42], base[12] | base[14]
+    pool = base + (x, y, z)
+    earlier = {0, *pool, *(v & base[32] for v in pool), *(a & b for a, b in pairs(pool[:-1]))}
+    if not all(any(dominates(t, v & z) for t in earlier) for v in pool):
+        raise ValueError("open product involving third OR")
+    if not any(dominates(v & x, x & y) or dominates(v & y, x & y) for v in base):
+        raise ValueError("open product crossing the first two ORs")
+    with gzip.open(ROOT / "case35-point-seven-4-10-13-42-12-14.json.gz", "rt") as f:
+        excluded = verify_union_data(pool, json.load(f), 16)
+    if excluded != set(guard_unions(pool)):
+        raise ValueError("open fourth OR in (4,10) probe")
+    return len(excluded)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("a", type=int)
@@ -206,4 +231,4 @@ if __name__ == "__main__":
     base = tuple(columns(PREFIX13 + POINT7,test_rows()))
     if not 0 <= args.a <= args.b < len(base):
         parser.error("expected ordered initial wire indices from 0 to 42")
-    print(json.dumps(frontier(base,args.a,args.b,fourth_stage_exclusions(base)),indent=2))
+    print(json.dumps(frontier(base,args.a,args.b,latest_exclusions(base)),indent=2))

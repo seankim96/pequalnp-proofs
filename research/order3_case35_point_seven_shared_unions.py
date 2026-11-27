@@ -102,9 +102,9 @@ def constrain(model, rows, h):
         return
     base = tuple(columns(model.prefix[:17],rows))
     from order3_case35_point_seven_paired import exclusions
-    from order3_case35_or_frontier import fourth_stage_exclusions
+    from order3_case35_or_frontier import latest_exclusions
     closed = (proved(base) | cross_bank_exclusions(base) | exclusions(base) |
-              {exclude_two_three(base)} | fourth_stage_exclusions(base))
+              {exclude_two_three(base)} | latest_exclusions(base))
     pool = columns(model.prefix,rows)
     for i,(op,_,_) in enumerate(model.prefix[17:],43):
         if not op and pool[i] in closed:
