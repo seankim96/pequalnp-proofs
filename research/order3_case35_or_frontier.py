@@ -91,14 +91,51 @@ def eight_sixteen_exclusion(base):
     return _exclude_before_fourth(base, (8,16), prior, "case35-point-seven-8-16-search.json.gz", 0)
 
 
-def _exclude_before_fourth(base, first, prior, filename, count):
+@lru_cache(maxsize=1)
+def eight_twenty_five_exclusion(base):
+    prior = (fourth_exclusion(base), five_exclusion(base), fourteen_exclusion(base),
+             five_nineteen_exclusion(base), eleven_twenty_one_exclusion(base),
+             eight_sixteen_exclusion(base))
+    return _exclude_before_fourth(base, (8,25), prior, "case35-point-seven-8-25-search.json.gz", 14)
+
+
+@lru_cache(maxsize=1)
+def twelve_twenty_two_exclusion(base):
+    prior = (fourth_exclusion(base), five_exclusion(base), fourteen_exclusion(base),
+             five_nineteen_exclusion(base), eleven_twenty_one_exclusion(base),
+             eight_sixteen_exclusion(base), eight_twenty_five_exclusion(base))
+    return _exclude_before_fourth(base, (12,22), prior, "case35-point-seven-12-22-search.json.gz", 4)
+
+
+@lru_cache(maxsize=1)
+def fourth_stage_exclusions(base):
+    """Replay additional two-OR exclusions independently against the same prior bank."""
+    prior = (fourth_exclusion(base), five_exclusion(base), fourteen_exclusion(base),
+             five_nineteen_exclusion(base), eleven_twenty_one_exclusion(base),
+             eight_sixteen_exclusion(base), eight_twenty_five_exclusion(base),
+             twelve_twenty_two_exclusion(base))
+    records = json.loads((ROOT / "case35-point-seven-empty-thirds.json").read_text())
+    closed = set(prior)
+    for a,b,seconds in records:
+        if not (0 <= a <= b < len(base) and seconds > 0):
+            raise ValueError("invalid first-OR record")
+        x = _exclude_before_fourth(base, (a,b), prior, None, 0, seconds)
+        if x in closed:
+            raise ValueError("repeated first-OR exclusion")
+        closed.add(x)
+    return frozenset(closed)
+
+
+def _exclude_before_fourth(base, first, prior, filename, count, expected_seconds=None):
     from order3_case35_star_preloads import eight_paid_floor
     from order3_case35_point_seven_or_order import after_one, dominates
 
     x = base[first[0]] | base[first[1]]
     after_one(base,x)
-    with gzip.open(ROOT / filename, "rt") as stream:
-        ledger = json.load(stream)
+    ledger = []
+    if filename is not None:
+        with gzip.open(ROOT / filename, "rt") as stream:
+            ledger = json.load(stream)
     records = ledger if isinstance(ledger, list) else ledger["triples"]
     crosses = set()
     for a,b,c,d,mode,tests,off in ([] if isinstance(ledger, list) else ledger["crosses"]):
@@ -111,7 +148,10 @@ def _exclude_before_fourth(base, first, prior, filename, count):
             raise ValueError("invalid cross exclusion")
         crosses.add(y)
     pending = set()
-    for row in frontier(base,*first,prior):
+    rows = frontier(base,*first,prior)
+    if expected_seconds is not None and len(rows) != expected_seconds:
+        raise ValueError("unexpected second-OR count")
+    for row in rows:
         y = int(row["second"],16)
         if y not in first_survivors(base):
             raise ValueError("unexpected second union")
@@ -166,4 +206,4 @@ if __name__ == "__main__":
     base = tuple(columns(PREFIX13 + POINT7,test_rows()))
     if not 0 <= args.a <= args.b < len(base):
         parser.error("expected ordered initial wire indices from 0 to 42")
-    print(json.dumps(frontier(base,args.a,args.b,(fourth_exclusion(base),five_exclusion(base),fourteen_exclusion(base),five_nineteen_exclusion(base),eleven_twenty_one_exclusion(base),eight_sixteen_exclusion(base))),indent=2))
+    print(json.dumps(frontier(base,args.a,args.b,fourth_stage_exclusions(base)),indent=2))

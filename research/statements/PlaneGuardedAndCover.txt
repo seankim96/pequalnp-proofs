@@ -1,0 +1,18 @@
+let Column := Nat → Bool
+let Gate := Bool × Nat × Nat
+let wire (s : List Column) (i : Nat) := s.getD i (fun _ => false)
+let mix (op : Bool) (x y : Column) : Column := fun r => if op then x r && y r else x r || y r
+let newWire (s : List Column) (g : Gate) := mix g.1 (wire s g.2.1) (wire s g.2.2)
+let step (s : List Column) (g : Gate) := s ++ [newWire s g]
+let supp {m : Nat} (flag : Fin m → Nat) (t : Nat) (x : Column) : Finset (Fin m) :=
+  if x t then Finset.univ.filter (fun i => !(x (flag i))) else ∅
+let charge (t : Nat) (free : Finset Nat) (s : List Column) (g : Gate) : Nat :=
+  if g.1 && newWire s g t && decide (g.2.1 ∉ free ∧ g.2.2 ∉ free) then 1 else 0
+let cost (t : Nat) (free : Finset Nat) (s : List Column) (gs : List Gate) : Nat :=
+  (gs.foldl (fun z g => (step z.1 g,z.2 + charge t free z.1 g)) (s,0)).2
+∀ (m : Nat) (flag : Fin m → Nat) (t : Nat) (s : List Column) (free : Finset Nat)
+    (gs : List Gate) (W : Finset Nat),
+    (∀ k ∈ free, k < s.length ∧ supp flag t (wire s k) = ∅) →
+    ∃ U : Finset Nat, U.card ≤ cost t free s gs + W.card ∧
+      W.biUnion (fun j => supp flag t (wire (gs.foldl step s) j)) ⊆
+        U.biUnion (fun j => supp flag t (wire s j))
