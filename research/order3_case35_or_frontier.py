@@ -50,13 +50,32 @@ def frontier(base, a, b, extra_excluded=()):
 @lru_cache(maxsize=1)
 def fourth_exclusion(base):
     """Exclude OR(4,19) by covering the first paid gate versus the fourth OR."""
+    return _exclude_before_fourth(base, (4,19), (), "case35-point-seven-fourth-search.json.gz", 4)
+
+
+@lru_cache(maxsize=1)
+def five_exclusion(base):
+    """Exclude first OR(4,5), replaying all ten surviving three-OR prefixes."""
+    return _exclude_before_fourth(base, (4,5), (fourth_exclusion(base),),
+                                  "case35-point-seven-4-5-fourth-search.json.gz", 10)
+
+
+@lru_cache(maxsize=1)
+def fourteen_exclusion(base):
+    """Verify the six remaining third outputs for first OR(4,14)."""
+    prior = (fourth_exclusion(base), five_exclusion(base))
+    return _exclude_before_fourth(base, (4,14), prior,
+                                  "case35-point-seven-4-14-fourth-search.json.gz", 6)
+
+
+def _exclude_before_fourth(base, first, prior, filename, count):
     from order3_case35_star_preloads import eight_paid_floor
     from order3_case35_point_seven_or_order import after_one, dominates
 
-    x = base[4] | base[19]
+    x = base[first[0]] | base[first[1]]
     after_one(base,x)
     pending = set()
-    for row in frontier(base,4,19):
+    for row in frontier(base,*first,prior):
         y = int(row["second"],16)
         if y not in first_survivors(base):
             raise ValueError("unexpected second union")
@@ -64,15 +83,21 @@ def fourth_exclusion(base):
         if not any(dominates(v & x,x & y) or dominates(v & y,x & y) for v in base):
             raise ValueError("uncovered paid cross after two unions")
         pending.update((y,int(t["column"],16)) for t in row["third"])
-    if len(pending) != 4:
+    if len(pending) != count:
         raise ValueError("unexpected third-OR frontier")
-    with gzip.open(ROOT / "case35-point-seven-fourth-search.json.gz","rt") as f:
+    with gzip.open(ROOT / filename,"rt") as f:
         records = json.load(f)
-    for a,b,k,preloads,cert in records:
-        if not (0 <= a <= b < len(base) and 0 <= k < len(base)):
+    for record in records:
+        if len(record) == 5:  # Original ledger encoded Z as initial[k] OR Y.
+            a,b,i,preloads,cert = record
+            j = len(base) + 1
+        else:
+            a,b,i,j,preloads,cert = record
+        if not (0 <= a <= b < len(base) and 0 <= i <= j < len(base) + 2):
             raise ValueError("invalid initial operand")
         y = base[a] | base[b]
-        z = base[k] | y
+        extended = base + (x,y)
+        z = extended[i] | extended[j]
         pending.remove((y,z))
         pool = base + (x,y,z)
         # Apart from guard masking, operands now strip to a wire in pool.
@@ -105,4 +130,4 @@ if __name__ == "__main__":
     base = tuple(columns(PREFIX13 + POINT7,test_rows()))
     if not 0 <= args.a <= args.b < len(base):
         parser.error("expected ordered initial wire indices from 0 to 42")
-    print(json.dumps(frontier(base,args.a,args.b,(fourth_exclusion(base),)),indent=2))
+    print(json.dumps(frontier(base,args.a,args.b,(fourth_exclusion(base),five_exclusion(base),fourteen_exclusion(base))),indent=2))
