@@ -7,7 +7,13 @@ import subprocess
 import tempfile
 from time import monotonic
 
+from order3_chain_cover import prefix_chains
+
 Gate = tuple[bool, int, int]
+CASE35_GUARDS = frozenset({(2, 26), (2, 27), (0, 1), (0, 26), (1, 26),
+                           (13, 13), (13, 26), (13, 30), (13, 31), (26, 26),
+                           (26, 27), (26, 29), (26, 30), (26, 31), (30, 30),
+                           (30, 31), (31, 31)})
 ROOT = Path(__file__).resolve().parents[1]
 LEAN_CASES = ROOT / "lean/PEqualNP/Research/OrderThreePlaneSwaps.lean"
 DIFFERENCES = (0, 1, 3, 9)
@@ -151,7 +157,8 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
            prune_tail: bool = True, operator_bounds: bool = False, fifth: Gate | None = None,
            sixth: Gate | None = None, seventh: Gate | None = None,
            eighth: Gate | None = None, ninth: Gate | None = None,
-           negative_seeds: tuple[int, ...] = (), *, tenth: Gate | None = None) -> str:
+           negative_seeds: tuple[int, ...] = (), *, tenth: Gate | None = None,
+           shared_guard_budget: bool = False) -> str:
     rows = test_rows()
     if point_quadrangles:
         point_mask = (1 << 13) - 1
@@ -188,6 +195,23 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
         prefix += (gate,)
         label += f" then {'AND' if op else 'OR'}({a},{b})"
     model = Encoding(prefix, 63)
+    guarded_prefix = (prefix[:6] == ((False, 0, 1), (False, 3, 9), (True, 15, 27),
+                                     (True, 17, 26), (True, 13, 26), (True, 13, 27))
+                      and seventh is not None and not seventh[0] and seventh[1:] in CASE35_GUARDS)
+    if shared_guard_budget:
+        if point_quadrangles or not guarded_prefix:
+            raise ValueError("shared guard budget requires the canonical six and a menu OR at gate 7 on all tests")
+        spent = sum(op and 32 not in (a, b) for op, a, b in prefix[7:])
+        charged = []
+        for g in model.gates:
+            # A charged witness must be an AND and neither selected operand may
+            # be wire 32. Any physical circuit has a one-hot selector encoding.
+            mark = model.fresh()
+            model.clause(-mark, g.is_and)
+            model.clause(-mark, -g.left[32])
+            model.clause(-mark, -g.right[32])
+            charged.append(mark)
+        model.require_at_least(charged, max(0, 9 - spent))
     if (prune_tail and not point_quadrangles and len(prefix) == 4 and
             prefix[:3] == ((True, 0, 13), (False, 0, 14), (True, 1, 13))):
         # PlaneFlagAndTail and PlaneFlagOrTail exclude each homogeneous suffix.
@@ -231,6 +255,14 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
                 if ninth is not None:
                     # PlaneCase35ThreeFreeGateBound allows all gate types and all dependencies at 7–9.
                     min_and = 9 - sum(g[0] for g in prefix[9:])
+                if tenth is not None and len(prefix_chains(prefix[6:])) <= 4:
+                    # PlaneCase35FourthGateFamilies applies to the actual normalized terms.
+                    min_and = 9
+                if (guarded_prefix
+                        and all(not op or 32 in (a, b) for op, a, b in prefix[7:])):
+                    # Simulate AND(x, wire32) as a masked OR(x,x). Only the
+                    # unchanged suffix pays ordinary ANDs in SharedGuardBudget.
+                    min_and = 9
             if (prefix[2:4] == ((True, 15, 27), (True, 17, 26)) and len(prefix) >= 7):
                 # PlaneCase35GuardedPoolTraceBound allows any number of guarded wires
                 # before the last two free choices. Check only its silent-wire alternative.
@@ -332,6 +364,8 @@ def main():
                         help="omit the two certified gate-type clauses when replaying earlier runs")
     parser.add_argument("--operator-bounds", action="store_true",
                         help="apply certified full-row lower bounds on AND and OR counts")
+    parser.add_argument("--shared-guard-budget", action="store_true",
+                        help="require nine ANDs excluding reads of the certified gate-seven OR output")
     args = parser.parse_args()
     if args.operator_bounds and args.point_quadrangles:
         parser.error("--operator-bounds requires the full row set")
@@ -384,7 +418,8 @@ def main():
     if args.seconds < 1:
         parser.error("--seconds must be positive")
     print(search(args.case, args.seconds, args.solver, args.witness, args.all_positives,
-                 args.point_quadrangles, args.zero_third, third, fourth, not args.no_tail_pruning, args.operator_bounds, *extra_gates[:5], negative_seeds=tuple(args.negative_seed), tenth=extra_gates[5]))
+                 args.point_quadrangles, args.zero_third, third, fourth, not args.no_tail_pruning, args.operator_bounds, *extra_gates[:5], negative_seeds=tuple(args.negative_seed), tenth=extra_gates[5],
+                 shared_guard_budget=args.shared_guard_budget))
 
 
 if __name__ == "__main__":
