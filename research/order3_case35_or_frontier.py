@@ -146,7 +146,9 @@ def latest_exclusions(base):
         extra.add(x)
     prior = prior | extra
     ten_fifteen = _exclude_before_fourth(base, (10,15), prior, "case35-point-seven-10-15-search.json.gz", 4)
-    return prior | {ten_fifteen}
+    prior = prior | {ten_fifteen}
+    eleven_fourteen = _exclude_before_fourth(base, (11,14), prior, "case35-point-seven-11-14-search.json.gz", 4)
+    return prior | {eleven_fourteen}
 
 
 def _exclude_before_fourth(base, first, prior, filename, count, expected_seconds=None, *, cross_records=()):

@@ -1,0 +1,9 @@
+let Side : Type := List (Nat × Bool)
+let Row : Type := Nat → Bool
+let hit (s : Side) (g : Bool) (r : Row) := s.any (fun l => r l.1 && (!l.2 || g))
+let push (r : Row) (v : Bool) : Row := fun i => if i = 0 then v else r (i-1)
+let step (g : Bool) (r : Row) (gate : Side × Side) :=
+  push r (hit gate.1 g r && hit gate.2 g r)
+∀ (gates : List (Side × Side)) (out : Side),
+  ∃ clauses : List Side, clauses.length = 2 ^ gates.length ∧
+    ∀ (g : Bool) (r : Row), hit out g (gates.foldl (step g) r) = clauses.all (fun s => hit s g r)
