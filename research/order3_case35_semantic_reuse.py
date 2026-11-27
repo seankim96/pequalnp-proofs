@@ -115,6 +115,21 @@ def main():
         total, excluded = cache[value]
         counts['two_total'] += total
         counts['two_excluded'] += total if wasted else excluded
+    # After gate 10, equal columns preserve every future wire. Keep the total
+    # number of explicit guard reads as well, since this is the h=28 boundary.
+    by_value = {}
+    for (op, a, b), value, excluded in first:
+        if not excluded:
+            by_value.setdefault(value, set()).add(int(op and 32 in (a, b)))
+    one_keys = sum(len(reads) for reads in by_value.values())
+    two_keys = 0
+    for value, reads in by_value.items():
+        keys = {(next_value, h + int(op and 32 in (a, b)))
+                for (op, a, b), next_value, excluded in choices(wires + [value])
+                if not excluded for h in reads}
+        two_keys += len(keys)
+    assert one_keys == 1076
+    print('Distinct surviving wire states and guard counts:', one_keys, two_keys)
     print(dict(counts))
     print('Excluded gate 11 by type:', {op: sum(bad for g, _, bad in first if g[0] == op)
                                          for op in (False, True)})

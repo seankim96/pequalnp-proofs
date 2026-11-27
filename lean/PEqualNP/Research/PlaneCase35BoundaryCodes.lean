@@ -392,7 +392,7 @@ private theorem checked (r : Fin 520) : wordOK r.val := by
 private def bits (c : Nat) :=
   let g := decode c
   if g.1 then word g.2.1 &&& word g.2.2 else word g.2.1 ||| word g.2.2
-private def certAt (i : Nat) : Prop := 
+private def certAt (i : Nat) : Prop :=
     (decode ands[i]!).1 = true ∧ free (decode frees[i]!) = true ∧
     bits ands[i]! = bits codes[i]! ∧ bits frees[i]! = bits codes[i]! ∧
     Ordinary.cheap (decode codes[i]!) = false

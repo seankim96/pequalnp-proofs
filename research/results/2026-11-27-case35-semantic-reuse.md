@@ -16,7 +16,7 @@ Fix gate 9 to AND(15,32) and gate 10 to AND(25,32). Of 1,332 physical choices fo
 
 **PlaneCase35BoundaryCodes** takes the size theorem as its explicit premise. Applying it to **PlaneCase35SemanticReuse** proves, for each index of a 237-entry explicit array and any following gates, that 38 plus the number of guard ANDs *after* gate 11 is at most the total circuit size. At h = 28 there must be 26 such ANDs after gate 11. Therefore all 237 choices require at least 64 gates. The Lean certificate compares packed row values with both concrete replacement gates. An independent Python enumeration checked distinctness, compared the complete ordered code list to the Lean array and reproduced the count. The 1,095 other choices remain open under this test.
 
-The Python census extends the rule to two gates. Of 1,872,792 ordered choices of gates 11–12, 612,696 contain a disallowed extra counted gate at h = 28, including extensions of the 237 first-step exclusions. This second census is computational. The explicit Lean table ends at gate 11. Replay with `python research/order3_case35_semantic_reuse.py`.
+The Python census extends the rule to two gates. Of 1,872,792 ordered choices of gates 11–12, 612,696 contain a disallowed extra counted gate at h = 28, including extensions of the 237 first-step exclusions. This second census is computational. Of the 1,260,096 surviving ordered two-gate choices, there are 1,212,043 distinct combinations of the two new truth columns and the cumulative guard-read count. The 1,095 surviving single gates yield 1,076 such combinations. Choosing one representative per combination preserves the entire pool of wire values and the remaining guard-read requirement for the suffix. These counts are also numerical. The explicit Lean table ends at gate 11. Replay with `python research/order3_case35_semantic_reuse.py`.
 
 ## Bounded exact-synthesis attempts
 
@@ -57,6 +57,6 @@ import PEqualNP.Research.PlaneCase35BoundaryCodes
 | Standalone theorem | Project checker | Rechecked constants | Single-file diff from checked upstream |
 | --- | --- | ---: | --- |
 | PlaneCase35SemanticReuse | ACCEPTED (check) | 2,243 | [comparison](https://github.com/seankim96/pequalnp-proofs/compare/aecf602ea3c8da01533a13d2ca03b633689f3033...6dc4529a7261e45929447b565bade24c1a151dd9) |
-| PlaneCase35BoundaryCodes | ACCEPTED (check) | 2,068 | [comparison](https://github.com/seankim96/pequalnp-proofs/compare/aecf602ea3c8da01533a13d2ca03b633689f3033...f9654467ee678cdda995289d7b6843cfb341f8bc) |
+| PlaneCase35BoundaryCodes | ACCEPTED (check) | 2,068 | [comparison](https://github.com/seankim96/pequalnp-proofs/compare/aecf602ea3c8da01533a13d2ca03b633689f3033...4593b79cdbb7f6fc8baa0765ee1f80dc27408055) |
 
 Both manifests listed only their own research module and 87 definition modules matching upstream byte-for-byte. The two independently expanded statements also compiled, as did the combined theorem against its unconditional statement. Its transitive axioms were propext, Quot.sound and Classical.choice. Earlier monolithic kernel checks ended with exit 137. Splitting the proofs and checking the finite witnesses in batches produced both final ACCEPTED verdicts. No upstream PR was opened for this unleased unit.
