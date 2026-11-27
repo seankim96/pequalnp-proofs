@@ -1,0 +1,31 @@
+let C := Nat → Bool
+let G := Bool × Nat × Nat
+let wire (s : List C) (j : Nat) := s.getD j (fun _ => false)
+let eval (s : List C) (g : G) : C := fun r =>
+  if g.1 then wire s g.2.1 r && wire s g.2.2 r else wire s g.2.1 r || wire s g.2.2 r
+let step (s : List C) (g : G) := s ++ [eval s g]
+let better (a b : C) :=
+  (∀ p : Fin 52, a p.val = true → b p.val = true) ∧
+  (∀ j : Fin 468, b (52+j.val) = true → a (52+j.val) = true)
+let legal (n : Nat) (gs : List G) := ∀ i : Fin gs.length,
+  let g := gs[i.val]'i.isLt
+  g.2.1 < n+i.val ∧ g.2.2 < n+i.val
+let guard (k : Nat) (g : G) := g.1 && (g.2.1 == k || g.2.2 == k)
+let bump (n j : Nat) := if j < n then j else j+1
+let rotate (n e j : Nat) := if j < e then bump n j else if j = e then n else j
+let relabel (f : Nat → Nat) (g : G) : G := (g.1,f g.2.1,f g.2.2)
+∀ (s : List C) (pre post : List G) (a b c d : Nat),
+    let n := s.length
+    let e := n+pre.length
+    let chosen : G := (false,a,b)
+    let early : G := (false,c,d)
+    let left := pre.map (relabel (bump n))
+    let right := post.map (relabel (rotate n e))
+    c < n → d < n → legal n pre → legal (e+1) post →
+    better (eval (pre.foldl step s) chosen) (eval s early) →
+    legal (n+1) left ∧ legal (e+1) right ∧
+    (early :: left ++ right).length = (pre ++ chosen :: post).length ∧
+    (∀ k < n, (early :: left ++ right).countP (guard k) =
+      (pre ++ chosen :: post).countP (guard k)) ∧
+    ∀ o, better (wire ((pre ++ chosen :: post).foldl step s) o)
+      (wire ((early :: left ++ right).foldl step s) (rotate n e o))

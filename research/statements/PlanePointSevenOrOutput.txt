@@ -1,0 +1,24 @@
+let Column := Nat → Bool
+let Gate := Bool × Nat × Nat
+let wire (s : List Column) (i : Nat) := s.getD i (fun _ => false)
+let mix (op : Bool) (x y : Column) : Column := fun r => if op then x r && y r else x r || y r
+let newWire (s : List Column) (g : Gate) := mix g.1 (wire s g.2.1) (wire s g.2.2)
+let step (s : List Column) (g : Gate) := s ++ [newWire s g]
+let initial : List Column :=
+  let raw := List.ofFn (fun i : Fin 26 => fun r : Nat => r.testBit i.val)
+  ([(false,0,1), (false,3,9), (true,15,27), (true,17,26), (true,13,26), (true,13,27), (false,2,6), (true,1,24), (true,15,32), (true,25,32), (true,0,17), (true,0,23), (true,0,25), (false,17,19), (false,20,24), (false,39,40)] : List Gate).foldl step raw
+let flags0 (i : Fin 19) : Nat := (#[8194, 16386, 32772, 65544, 65552, 65600, 69632, 131073, 131104, 131200, 262146, 524292, 1048832, 1049600, 2097664, 4194816, 8390656, 16777218, 33554436] : Array Nat)[i.val]!
+let neg0 : Nat := 1247750
+let flags1 (i : Fin 19) : Nat := (#[8194, 16386, 32772, 32776, 32800, 34816, 65600, 131073, 131088, 131200, 262146, 524352, 1048832, 1049600, 2097664, 4194816, 8388672, 16777218, 33558528] : Array Nat)[i.val]!
+let neg1 : Nat := 1217090
+let pivot : Nat := 34816
+∀ (pre post : List Gate) (a b o : Nat),
+    let g : Gate := (false,a,b)
+    let v := newWire (pre.foldl step initial) g
+    let out := wire (post.foldl step (step (pre.foldl step initial) g)) o
+    v pivot = false →
+    (v neg0 = false → (Finset.univ.filter (fun i : Fin 19 => v (flags0 i))).card ≤ 1) →
+    (v neg1 = false → (Finset.univ.filter (fun i : Fin 19 => v (flags1 i))).card ≤ 1) →
+    (∀ i : Fin 19, out (flags0 i) = true) → (∀ i : Fin 19, out (flags1 i) = true) →
+    out neg0 = false → out neg1 = false → out pivot = true →
+    20 ≤ (pre ++ g :: post).countP (fun gate => !gate.1)

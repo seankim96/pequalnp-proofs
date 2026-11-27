@@ -16,7 +16,7 @@ def dominates(u, v):
     return not (v & ~u & POS or u & ~v & ~POS)
 
 
-def eight_paid_floor(base, value, rows, guard_off, packings):
+def eight_paid_floor(base, value, rows, guard_off, packings, *, unique_paid_outputs=False):
     pool = base + [value]
     graph = witness_graph(pool)
     guard = pool[32]
@@ -59,7 +59,7 @@ def eight_paid_floor(base, value, rows, guard_off, packings):
                 edges.append([a, b, witness])
                 break
     return replay(pool, dict(packs=packs, guard=guard_off, constants=blocked,
-                             incompatible=edges))[-1]
+                             incompatible=edges), unique_paid_outputs=unique_paid_outputs)[-1]
 
 
 def classify(base):

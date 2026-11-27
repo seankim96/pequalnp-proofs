@@ -27,7 +27,31 @@ def forest_weight(k, drop_one=True):
     return visit(0, list(range(256)), 0)
 
 
-def replay(pool, cert=None):
+@lru_cache(None)
+def matching_weight(k, drop_one=False):
+    """Root weights when physical paid outputs are each selected at most once."""
+    if not 128 < k <= 256:
+        raise ValueError("requires eight independent probes on more than 128 rows")
+    # A length-two implication path leaves 4*32 = 128 words. Three
+    # disjoint implications leave 27*4 = 108. Every feasible orientation
+    # therefore has at most two disjoint implication edges up to relabeling.
+    best = None
+    for count in range(3):
+        roots = 255 ^ sum(1 << (i+2) for i in range(count))
+        allowed = [w for w in range(256) if all(
+            not (w >> (i+2) & 1) or w >> i & 1 for i in range(count))]
+        if len(allowed) < k:
+            continue
+        masks = [roots]
+        if drop_one:
+            masks = [roots ^ (1 << b) for b in range(8) if roots >> b & 1]
+        for mask in masks:
+            floor = sum(sorted((w & mask).bit_count() for w in allowed)[:k])
+            best = floor if best is None else min(best, floor)
+    return best
+
+
+def replay(pool, cert=None, *, unique_paid_outputs=False):
     if cert is None:
         cert = json.loads((ROOT / "case35-point-seven-probe-pairs.json").read_text())
     graph = witness_graph(pool)
@@ -98,11 +122,12 @@ def replay(pool, cert=None):
             if len(links) <= 1 and all(not (neighbors[u] & chosen) for u in links):
                 visit(chosen | {v}, candidates, total + weight[v])
     visit(set(), sorted(exceptional, key=weight.get, reverse=True), 0)
-    true_entries = 2 * forest_weight(k, False) - worst
+    root_weight = matching_weight if unique_paid_outputs else forest_weight
+    true_entries = 2 * root_weight(k, False) - worst
     if at_most_two:
         # Orient the two complete traces so each has at most one exceptional
         # operand. The free-root calculation charges only distinct OR outputs.
-        true_entries = max(true_entries, 2 * forest_weight(k))
+        true_entries = max(true_entries, 2 * root_weight(k, True))
     result = (width + true_entries + k-1)//k - 1
     return k, width, len(exceptional), len(edges), true_entries, result
 
