@@ -68,12 +68,48 @@ def fourteen_exclusion(base):
                                   "case35-point-seven-4-14-fourth-search.json.gz", 6)
 
 
+@lru_cache(maxsize=1)
+def five_nineteen_exclusion(base):
+    """Cover the six outstanding triples with first union OR(5,19)."""
+    prior = (fourth_exclusion(base), five_exclusion(base), fourteen_exclusion(base))
+    return _exclude_before_fourth(base, (5,19), prior,
+                                  "case35-point-seven-5-19-fourth-search.json.gz", 6)
+
+
+@lru_cache(maxsize=1)
+def eleven_twenty_one_exclusion(base):
+    prior = (fourth_exclusion(base), five_exclusion(base), fourteen_exclusion(base),
+             five_nineteen_exclusion(base))
+    return _exclude_before_fourth(base, (11,21), prior,
+                                  "case35-point-seven-11-21-fourth-search.json.gz", 4)
+
+
+@lru_cache(maxsize=1)
+def eight_sixteen_exclusion(base):
+    prior = (fourth_exclusion(base), five_exclusion(base), fourteen_exclusion(base),
+             five_nineteen_exclusion(base), eleven_twenty_one_exclusion(base))
+    return _exclude_before_fourth(base, (8,16), prior, "case35-point-seven-8-16-search.json.gz", 0)
+
+
 def _exclude_before_fourth(base, first, prior, filename, count):
     from order3_case35_star_preloads import eight_paid_floor
     from order3_case35_point_seven_or_order import after_one, dominates
 
     x = base[first[0]] | base[first[1]]
     after_one(base,x)
+    with gzip.open(ROOT / filename, "rt") as stream:
+        ledger = json.load(stream)
+    records = ledger if isinstance(ledger, list) else ledger["triples"]
+    crosses = set()
+    for a,b,c,d,mode,tests,off in ([] if isinstance(ledger, list) else ledger["crosses"]):
+        if (a,b) != first or not (0 <= c <= d < len(base)) or mode != 0:
+            raise ValueError("invalid two-OR cross")
+        y = base[c] | base[d]
+        floor = eight_paid_floor(list(base), x & y, [j for j,_ in tests], off,
+                                 dict(tests), unique_paid_outputs=True)
+        if floor <= 19 or y in crosses:
+            raise ValueError("invalid cross exclusion")
+        crosses.add(y)
     pending = set()
     for row in frontier(base,*first,prior):
         y = int(row["second"],16)
@@ -81,12 +117,12 @@ def _exclude_before_fourth(base, first, prior, filename, count):
             raise ValueError("unexpected second union")
         after_one(base,y)
         if not any(dominates(v & x,x & y) or dominates(v & y,x & y) for v in base):
-            raise ValueError("uncovered paid cross after two unions")
+            if y not in crosses:
+                raise ValueError("uncovered paid cross after two unions")
+            crosses.remove(y)
         pending.update((y,int(t["column"],16)) for t in row["third"])
-    if len(pending) != count:
+    if crosses or len(pending) != count:
         raise ValueError("unexpected third-OR frontier")
-    with gzip.open(ROOT / filename,"rt") as f:
-        records = json.load(f)
     for record in records:
         if len(record) == 5:  # Original ledger encoded Z as initial[k] OR Y.
             a,b,i,preloads,cert = record
@@ -130,4 +166,4 @@ if __name__ == "__main__":
     base = tuple(columns(PREFIX13 + POINT7,test_rows()))
     if not 0 <= args.a <= args.b < len(base):
         parser.error("expected ordered initial wire indices from 0 to 42")
-    print(json.dumps(frontier(base,args.a,args.b,(fourth_exclusion(base),five_exclusion(base),fourteen_exclusion(base))),indent=2))
+    print(json.dumps(frontier(base,args.a,args.b,(fourth_exclusion(base),five_exclusion(base),fourteen_exclusion(base),five_nineteen_exclusion(base),eleven_twenty_one_exclusion(base),eight_sixteen_exclusion(base))),indent=2))
