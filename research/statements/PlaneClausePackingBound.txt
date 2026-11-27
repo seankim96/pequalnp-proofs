@@ -1,0 +1,6 @@
+∀ (n m p : Nat) (pos : Fin p → Nat → Bool) (neg : Fin n → Nat → Bool)
+    (clauses : Fin m → List Nat),
+    (∀ i j : Fin n, i ≠ j → ∃ k : Fin p, ∀ l, pos k l = true →
+      neg i l = true ∨ neg j l = true) →
+    (∀ k c, (clauses c).any (pos k) = true) →
+    (∀ i, ∃ c, (clauses c).any (neg i) = false) → n ≤ m

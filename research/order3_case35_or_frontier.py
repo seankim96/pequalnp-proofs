@@ -148,7 +148,9 @@ def latest_exclusions(base):
     ten_fifteen = _exclude_before_fourth(base, (10,15), prior, "case35-point-seven-10-15-search.json.gz", 4)
     prior = prior | {ten_fifteen}
     eleven_fourteen = _exclude_before_fourth(base, (11,14), prior, "case35-point-seven-11-14-search.json.gz", 4)
-    return prior | {eleven_fourteen}
+    prior = prior | {eleven_fourteen}
+    four_sixteen = _exclude_before_fourth(base, (4,16), prior, "case35-point-seven-4-16-search.json.gz", 4)
+    return prior | {four_sixteen}
 
 
 def _exclude_before_fourth(base, first, prior, filename, count, expected_seconds=None, *, cross_records=()):
@@ -225,19 +227,29 @@ def _exclude_before_fourth(base, first, prior, filename, count, expected_seconds
 
 def replay_four_ten_probe(base):
     """Fourth-union and product-dominance tests for one (4,10) continuation."""
+    return _replay_dominated_triple(base, (4,10), (13,42), (12,14))
+
+
+def replay_five_eight_probe(base):
+    """Check the first unresolved (5,8) triple from the previous frontier."""
+    return _replay_dominated_triple(base, (5,8), (13,42), (4,18))
+
+
+def _replay_dominated_triple(base, first, second, third):
     from order3_case35_point_seven_shared_unions import dominates
 
-    x, y, z = base[4] | base[10], base[13] | base[42], base[12] | base[14]
+    x, y, z = (base[a] | base[b] for a,b in (first,second,third))
     pool = base + (x, y, z)
     earlier = {0, *pool, *(v & base[32] for v in pool), *(a & b for a, b in pairs(pool[:-1]))}
     if not all(any(dominates(t, v & z) for t in earlier) for v in pool):
         raise ValueError("open product involving third OR")
     if not any(dominates(v & x, x & y) or dominates(v & y, x & y) for v in base):
         raise ValueError("open product crossing the first two ORs")
-    with gzip.open(ROOT / "case35-point-seven-4-10-13-42-12-14.json.gz", "rt") as f:
+    suffix = "-".join(str(i) for pair in (first,second,third) for i in pair)
+    with gzip.open(ROOT / f"case35-point-seven-{suffix}.json.gz", "rt") as f:
         excluded = verify_union_data(pool, json.load(f), 16)
     if excluded != set(guard_unions(pool)):
-        raise ValueError("open fourth OR in (4,10) probe")
+        raise ValueError("open fourth OR in triple probe")
     return len(excluded)
 
 
