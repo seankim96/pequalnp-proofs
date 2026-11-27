@@ -21,6 +21,10 @@ def guard_unions(base):
 @lru_cache(maxsize=2)
 def excluded_unions(base, filename, width):
     data = json.loads((ROOT / filename).read_text())
+    return verify_union_data(base,data,width)
+
+
+def verify_union_data(base, data, width):
     values = guard_unions(base)
     tests = []
     for j,flags in data["tests"]:

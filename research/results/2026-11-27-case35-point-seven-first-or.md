@@ -1,4 +1,4 @@
-# L-meta-2625 · Two forbidden OR outputs in the 20-read branch
+# L-meta-2625 · Twenty-eight forbidden OR outputs in the 20-read branch
 
 Resumed from `408d4f34774f3f2e8386caadcbaa7f680664e03c`. The checked upstream base is `291ba037b65ad85fcabe7ba3d34710f22dc67e1c`. The fork branch and the author's four closed PRs were checked before starting. #7762 and #8170 were merged with ACCEPTED checker comments, zero review comments and no outstanding review. The upstream tree has reductions 50, 317 and 487 for L-meta-2625. The desk returned not_open for the unit and no gap or lease for the scoped next request. The unrestricted 63-gate question remains open in the checked work. These are fork research contributions.
 
@@ -12,7 +12,7 @@ OR(2,6)   AND(1,24)  AND(15,32) AND(25,32) AND(0,17)  AND(0,23)
 AND(0,25) OR(17,19)  OR(20,24)  OR(39,40)  AND(7,41)
 ```
 
-Let h count physical AND gates that read wire 32, counting a gate once. Two reads occur in the prefix. Respect the previous checkpoint's 520-row target and its lower bounds. At h ≥ 20 a 63-gate solution must have h = 20. The remaining 46 gates must consist of 18 guard ANDs, nine other (paid) ANDs and 19 ORs. The first paid AND must now follow at least **two** new ORs. At any position in this suffix, an OR computing the column of **OR(0,2)** or **OR(0,3)** is impossible. The finite case split leaves 228 prospective first-OR values. This is a conditional exclusion within the fixed prefix.
+Let h count physical AND gates that read wire 32, counting a gate once. Two reads occur in the prefix. Respect the previous checkpoint's 520-row target and its lower bounds. At h ≥ 20 a 63-gate solution must have h = 20. The remaining 46 gates must consist of 18 guard ANDs, nine other (paid) ANDs and 19 ORs. The first paid AND must now follow at least **two** new ORs. At any position in this suffix, an OR computing any of the 28 starting-pair columns in case35-point-seven-shared-first-pairs.json is impossible. The finite case split leaves **202** prospective first-OR values, all of them unions of starting wires. Wire 0 cannot supply either input of the first OR. This is a conditional exclusion within the fixed prefix.
 
 ## Two kernel-checked lemmas
 
@@ -44,12 +44,27 @@ Preload X and each proposed second union Y. A width-18 pivot certificate contrad
 
 Before the third OR every source is therefore an initial input, X, Y, or a guard-masked copy of one of those. Preloading the third union leaves only 16 ORs. For every distinct possible result a width-17 pivot certificate requires at least 17. This completes both fixed first-OR branches. The rotation theorem extends the exclusion to a later OR output with the same tested values, or one dominated by the forbidden column. The output index may be any wire in the lower-bound argument.
 
+## Sharing the pivot witnesses across first unions
+
+For OR(0,4), 2,573 of 2,575 second-OR values are excluded by the width-18 certificates. The same two second choices survive. Their 2,709 and 2,642 third-OR values, respectively, are all excluded. As above X AND wire 13 dominates the cross product. The candidate-witness generator is included so later runs can sample additional packings at any chosen sequence of unions. It replays the selected certificates independently.
+
+The shared-bank replay takes the width-18 and width-17 witnesses used for OR(0,2), OR(0,3) and OR(0,4), applies them to other starting pools, checks every reused packing against the augmented starting wires, and derives fresh pivot certificates. This certifies 22 first values with simple dominance. Five more require a density check after preloading a cross product X AND Y. The ten additional preload certificates (two per first union) each exhibit a clique of 160 and require at least 22 ORs with eight paid gates, exceeding the 19 available. One more first union closes by simple dominance when the full shared bank and original replacement set are used. The 28 verified pairs are stored explicitly. The rotation lemma makes their exclusion valid even at a later OR. After subtracting them from the 230 first-OR candidates, 202 remain.
+
+For the next lexicographic value, OR(2,3), five second-OR columns survive the preliminary width-18 and known-column filters out of 2,577 possible columns. They are OR(7,13), OR(7,15), OR(13,15), OR(13,42) and OR(15,42). In four branches an earlier paid AND is excluded by cross-product dominance and no third OR passes the width-17 replay. Only OR(13,15) remains as a second value. Its cross product and the 17 still-unexcluded third-OR values are the next frontier. Surviving these filters does not establish satisfiability.
+
 ## Reproduction
 
 From the fork, use Python with NumPy for the finite replay. All stored witnesses are checked on the original 52 positive and 468 negative rows. Optimization was used to propose witnesses. Replay requires no optimizer, floating-point verdict or trusted search optimum.
 
 ```sh
 python research/order3_case35_point_seven_or_order.py
+python research/order3_case35_point_seven_shared_unions.py
+```
+
+To search a new frontier and check the resulting witnesses, the following example prepays OR(2,3) and OR(13,15). Each MILP proposal has a three-second budget. The objective only selects potential flag sets, and the replay checks the actual masks and all residual AND-only candidates. Increasing the samples may find additional witnesses.
+
+```sh
+python research/order3_case35_or_packing_search.py --union 2 3 --union 13 15 --samples 90 --seed 2304 --out /tmp/point-seven-2-3-13-15.json
 ```
 
 For either theorem name N in the table, use the checked upstream base and its pinned toolchain, with the single source and its exact statement copied from the fork.
@@ -74,7 +89,16 @@ Use `--after-fifteen OP A B` for each additional physical gate, then `--seconds 
 | OR(0,2) | completed --point-seven-order | 120 | UNSAT |
 | OR(0,2), AND(25,43) | one-OR paid cut | 10 | UNSAT |
 | AND(13,32), OR(0,43) | first-OR value cut | 10 | UNSAT |
+| OR(0,2), separately OR(0,3) | completed --point-seven-order | 10 each | UNSAT in each run |
+| OR(0,4), OR(0,3) | completed --point-seven-order, moved late OR | 10 | UNSAT |
+| OR(0,4) | --point-seven-order before shared bank | 90 | UNKNOWN |
+| free | --point-seven-order | 120 | UNKNOWN |
+| OR(0,4), separately OR(11,24) | --shared-first-ors, 22 certified pairs | 10 each | UNSAT in each run |
+| free | --shared-first-ors, 22 certified pairs | 120 | UNKNOWN |
+| OR(0,7), separately OR(18,24) | --shared-first-ors, 28 certified pairs | 10 each | UNSAT in each run |
+| OR(2,3), OR(13,15) | --star-probes | 45 | UNKNOWN |
+| free | --shared-first-ors, 28 certified pairs | 120 | UNKNOWN |
 
 ## Continuation
 
-Keep the 17-gate branch at h = 20 and the new two-OR ordering constraint. Skip OR(0,2) and OR(0,3) at every position. The first prospective pair in lexicographic order is now OR(0,4). Its second and third unions can be checked by the same sequence of preloads and finite pivot certificates. The other h values and unrelated 63-gate prefixes were not searched in this run.
+Resume at h = 20 with `--shared-first-ors`. For the first candidate OR(2,3), fix OR(13,15) as the second union. Decide whether their cross product can feed the first paid AND before a third OR, and examine the 17 remaining third-OR values if it cannot. The 45-second run on this pair and the 120-second run on the full 20-read prefix both ended UNKNOWN.

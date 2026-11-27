@@ -168,7 +168,7 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
            semantic_boundary: bool = False, semantic_budget: bool = False, dominating_guard: bool = False, normalize_guard: bool = False, eleventh: Gate | None = None,
            twelfth: Gate | None = None, wire_credit: bool = False, adaptive_charge: bool = False, trace_budget: bool = False,
            gate14_trace: bool = False, preloaded_trace: bool = False, first_or_lines: bool = False, guard_read_ceiling: bool = False, branch_packing_tree: bool = False,
-           thirteenth: Gate | None = None, fourteenth: Gate | None = None, fifteenth: Gate | None = None, later: tuple[Gate, ...] = (), colored_trace: bool = False, or_trace_density: bool = False, preload_density: bool = False, sparse_density: bool = False, first_paid_order: bool = False, three_before_paid: bool = False, star_packings: bool = False, star_leaves: bool = False, star_probes: bool = False, star_preloads: bool = False, point_seven_order: bool = False) -> str:
+           thirteenth: Gate | None = None, fourteenth: Gate | None = None, fifteenth: Gate | None = None, later: tuple[Gate, ...] = (), colored_trace: bool = False, or_trace_density: bool = False, preload_density: bool = False, sparse_density: bool = False, first_paid_order: bool = False, three_before_paid: bool = False, star_packings: bool = False, star_leaves: bool = False, star_probes: bool = False, star_preloads: bool = False, point_seven_order: bool = False, shared_first_ors: bool = False) -> str:
     rows = test_rows()
     if point_quadrangles:
         point_mask = (1 << 13) - 1
@@ -213,6 +213,7 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
         prefix += ((op,a,b),)
         label += f" then {'AND' if op else 'OR'}({a},{b})"
     model = Encoding(prefix, 63)
+    point_seven_order = point_seven_order or shared_first_ors
     if star_packings or star_leaves or star_probes or star_preloads or point_seven_order:
         from order3_case35_star_packings import constrain as constrain_stars
         constrain_stars(model, rows, min_guard_reads, leaves=star_leaves, probes=star_probes or star_preloads or point_seven_order)
@@ -222,6 +223,9 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
     if point_seven_order:
         from order3_case35_point_seven_or_order import constrain as constrain_or_order
         constrain_or_order(model, rows, min_guard_reads)
+    if shared_first_ors:
+        from order3_case35_point_seven_shared_unions import constrain as constrain_shared_unions
+        constrain_shared_unions(model, rows, min_guard_reads)
     if first_paid_order or three_before_paid:
         from order3_case35_first_paid_order import constrain as constrain_order
         constrain_order(model, rows, min_guard_reads, 3 if three_before_paid else 2)
@@ -482,6 +486,7 @@ def main():
     parser.add_argument("--thirteenth", nargs=3, metavar=("OP", "LEFT", "RIGHT"))
     parser.add_argument("--fourteenth", nargs=3, metavar=("OP", "LEFT", "RIGHT"))
     parser.add_argument("--after-fifteen", action="append", nargs=3, default=[], metavar=("OP","LEFT","RIGHT"))
+    parser.add_argument("--shared-first-ors", action="store_true", help="replay the shared packing bank and exclude certified point-seven OR columns")
     parser.add_argument("--point-seven-order", action="store_true", help="require two ORs before the first paid AND in the completed point-seven branch")
     parser.add_argument("--star-preloads", action="store_true", help="replay distinct paid preloads at the point-seven h=20 boundary")
     parser.add_argument("--star-probes", action="store_true", help="also apply incompatible probe pairs at certified star completions")
@@ -587,7 +592,7 @@ def main():
                  shared_guard_budget=args.shared_guard_budget, min_guard_reads=args.min_guard_reads,
                  semantic_boundary=args.semantic_boundary, semantic_budget=args.semantic_budget, dominating_guard=args.dominating_guard, normalize_guard=args.normalize_guard, eleventh=extra_gates[6],
                  twelfth=extra_gates[7], wire_credit=args.wire_credit, adaptive_charge=args.adaptive_charge, trace_budget=args.trace_budget, gate14_trace=args.gate14_trace,
-                 thirteenth=extra_gates[8], fourteenth=extra_gates[9], fifteenth=extra_gates[10], later=tuple(later), colored_trace=args.colored_trace, or_trace_density=args.or_trace_density, preload_density=args.preload_density, sparse_density=args.sparse_density, first_paid_order=args.first_paid_order, three_before_paid=args.three_before_paid, star_packings=args.star_packings, star_leaves=args.star_leaves, star_probes=args.star_probes, star_preloads=args.star_preloads, point_seven_order=args.point_seven_order,
+                 thirteenth=extra_gates[8], fourteenth=extra_gates[9], fifteenth=extra_gates[10], later=tuple(later), colored_trace=args.colored_trace, or_trace_density=args.or_trace_density, preload_density=args.preload_density, sparse_density=args.sparse_density, first_paid_order=args.first_paid_order, three_before_paid=args.three_before_paid, star_packings=args.star_packings, star_leaves=args.star_leaves, star_probes=args.star_probes, star_preloads=args.star_preloads, point_seven_order=args.point_seven_order, shared_first_ors=args.shared_first_ors,
                  preloaded_trace=args.preloaded_trace, first_or_lines=args.first_or_lines, guard_read_ceiling=args.guard_read_ceiling, branch_packing_tree=args.branch_packing_tree))
 
 
