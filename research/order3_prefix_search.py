@@ -162,7 +162,8 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
            negative_seeds: tuple[int, ...] = (), *, tenth: Gate | None = None,
            shared_guard_budget: bool = False, min_guard_reads: int = 0,
            semantic_boundary: bool = False, semantic_budget: bool = False, dominating_guard: bool = False, normalize_guard: bool = False, eleventh: Gate | None = None,
-           twelfth: Gate | None = None, wire_credit: bool = False) -> str:
+           twelfth: Gate | None = None, wire_credit: bool = False, adaptive_charge: bool = False,
+           thirteenth: Gate | None = None, fourteenth: Gate | None = None) -> str:
     rows = test_rows()
     if point_quadrangles:
         point_mask = (1 << 13) - 1
@@ -190,7 +191,8 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
         label += f" then {'AND' if op else 'OR'}({a},{b})"
     for name, gate, position in (("fifth", fifth, 5), ("sixth", sixth, 6),
                                  ("seventh", seventh, 7), ("eighth", eighth, 8), ("ninth", ninth, 9),
-                                 ("tenth", tenth, 10), ("eleventh", eleventh, 11), ("twelfth", twelfth, 12)):
+                                 ("tenth", tenth, 10), ("eleventh", eleventh, 11), ("twelfth", twelfth, 12),
+                                 ("thirteenth", thirteenth, 13), ("fourteenth", fourteenth, 14)):
         if gate is None:
             continue
         op, a, b = gate
@@ -235,6 +237,11 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
         else:
             model.require_at_least(reads, needed)
         label += f" with at least {min_guard_reads} ANDs reading wire 32"
+    if adaptive_charge:
+        if point_quadrangles:
+            raise ValueError("adaptive charge requires the full target")
+        from order3_case35_adaptive_charge import constrain
+        constrain(model, rows, min_guard_reads)
     if wire_credit:
         if not rescued_prefix or point_quadrangles:
             raise ValueError("wire credit requires the certified eight-gate prefix and full target")
@@ -409,6 +416,10 @@ def main():
                         help="fix the eleventh gate after the tenth")
     parser.add_argument("--twelfth", nargs=3, metavar=("OP", "LEFT", "RIGHT"),
                         help="fix the twelfth gate after the eleventh")
+    parser.add_argument("--thirteenth", nargs=3, metavar=("OP", "LEFT", "RIGHT"))
+    parser.add_argument("--fourteenth", nargs=3, metavar=("OP", "LEFT", "RIGHT"))
+    parser.add_argument("--adaptive-charge", action="store_true",
+                        help="charge gates dominated by an earlier wire or a guard AND in the current pool")
     parser.add_argument("--wire-credit", action="store_true",
                         help="charge the eleven gate types certified by PlaneCase35WireCredit")
     parser.add_argument("--semantic-budget", action="store_true",
@@ -456,7 +467,7 @@ def main():
             parser.error("expected 0 <= LEFT <= RIGHT < 29")
     extra_gates = []
     previous = fourth
-    for position, name in enumerate(("fifth", "sixth", "seventh", "eighth", "ninth", "tenth", "eleventh", "twelfth"), start=5):
+    for position, name in enumerate(("fifth", "sixth", "seventh", "eighth", "ninth", "tenth", "eleventh", "twelfth", "thirteenth", "fourteenth"), start=5):
         operand_spec = getattr(args, name)
         gate = None
         if operand_spec:
@@ -482,7 +493,8 @@ def main():
                  args.point_quadrangles, args.zero_third, third, fourth, not args.no_tail_pruning, args.operator_bounds, *extra_gates[:5], negative_seeds=tuple(args.negative_seed), tenth=extra_gates[5],
                  shared_guard_budget=args.shared_guard_budget, min_guard_reads=args.min_guard_reads,
                  semantic_boundary=args.semantic_boundary, semantic_budget=args.semantic_budget, dominating_guard=args.dominating_guard, normalize_guard=args.normalize_guard, eleventh=extra_gates[6],
-                 twelfth=extra_gates[7], wire_credit=args.wire_credit))
+                 twelfth=extra_gates[7], wire_credit=args.wire_credit, adaptive_charge=args.adaptive_charge,
+                 thirteenth=extra_gates[8], fourteenth=extra_gates[9]))
 
 
 if __name__ == "__main__":
