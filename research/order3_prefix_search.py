@@ -161,7 +161,7 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
            eighth: Gate | None = None, ninth: Gate | None = None,
            negative_seeds: tuple[int, ...] = (), *, tenth: Gate | None = None,
            shared_guard_budget: bool = False, min_guard_reads: int = 0,
-           semantic_boundary: bool = False, semantic_budget: bool = False, eleventh: Gate | None = None) -> str:
+           semantic_boundary: bool = False, semantic_budget: bool = False, dominating_guard: bool = False, normalize_guard: bool = False, eleventh: Gate | None = None) -> str:
     rows = test_rows()
     if point_quadrangles:
         point_mask = (1 << 13) - 1
@@ -234,16 +234,21 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
         else:
             model.require_at_least(reads, needed)
         label += f" with at least {min_guard_reads} ANDs reading wire 32"
+    if normalize_guard:
+        if point_quadrangles:
+            raise ValueError("guard normalization uses the complete 520-row target")
+        from order3_case35_semantic_reuse import normalize_suffix
+        normalize_suffix(model, rows)
     if semantic_budget:
         if not rescued_prefix or point_quadrangles:
             raise ValueError("semantic budget requires the rescued eight-gate prefix and all tests")
         from order3_case35_semantic_reuse import cap_flexible
         cap_flexible(model, rows)
-    if semantic_boundary:
+    if semantic_boundary or dominating_guard:
         if not rescued_prefix or not shared_guard_budget or min_guard_reads < 28:
             raise ValueError("semantic pruning requires the rescued prefix and at least 28 guard reads")
         from order3_case35_semantic_reuse import prune_boundary
-        prune_boundary(model, rows)
+        prune_boundary(model, rows, dominance=dominating_guard)
     if (prune_tail and not point_quadrangles and len(prefix) == 4 and
             prefix[:3] == ((True, 0, 13), (False, 0, 14), (True, 1, 13))):
         # PlaneFlagAndTail and PlaneFlagOrTail exclude each homogeneous suffix.
@@ -398,6 +403,10 @@ def main():
                         help="fix the eleventh gate after the tenth")
     parser.add_argument("--semantic-budget", action="store_true",
                         help="cap provably flexible gates without a minimum guard reuse count")
+    parser.add_argument("--normalize-guard", action="store_true",
+                        help="normalize only free gates, without assuming a minimum guard count")
+    parser.add_argument("--dominating-guard", action="store_true",
+                        help="also exclude gates dominated on all labeled rows by one guard AND")
     parser.add_argument("--semantic-boundary", action="store_true",
                         help="exclude non-guard gates with interchangeable implementations at the 28-read boundary")
     parser.add_argument("--no-tail-pruning", action="store_true",
@@ -462,7 +471,7 @@ def main():
     print(search(args.case, args.seconds, args.solver, args.witness, args.all_positives,
                  args.point_quadrangles, args.zero_third, third, fourth, not args.no_tail_pruning, args.operator_bounds, *extra_gates[:5], negative_seeds=tuple(args.negative_seed), tenth=extra_gates[5],
                  shared_guard_budget=args.shared_guard_budget, min_guard_reads=args.min_guard_reads,
-                 semantic_boundary=args.semantic_boundary, semantic_budget=args.semantic_budget, eleventh=extra_gates[6]))
+                 semantic_boundary=args.semantic_boundary, semantic_budget=args.semantic_budget, dominating_guard=args.dominating_guard, normalize_guard=args.normalize_guard, eleventh=extra_gates[6]))
 
 
 if __name__ == "__main__":

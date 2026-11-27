@@ -36,21 +36,40 @@ def choices(wires):
             yield (op, a, b), value, alias and not explicit
 
 
-def fixed_state(model, rows):
+def guard_dominance(wires, rows):
+    """Map replaceable non-guard gates to a legal partner of wire 32."""
+    positives = sum(1 << i for i, (_, label) in enumerate(rows) if label)
+    negatives = ((1 << len(rows)) - 1) ^ positives
+    guarded = {w & wires[32]: i for i, w in enumerate(wires)}
+    witnesses = {}
+    for gate, value, _ in choices(wires):
+        if gate[0] and 32 in gate[1:]:
+            continue
+        for replacement, partner in guarded.items():
+            if not (value & positives & ~replacement or replacement & negatives & ~value):
+                witnesses[gate] = partner
+                break
+    return witnesses
+
+
+def fixed_state(model, rows, dominance=False):
     if model.prefix[:8] != PREFIX[:8] or model.size != 63 or len(rows) != 520:
         raise ValueError("semantic pruning needs the certified prefix, 520 rows and size 63")
     wires = columns(model.prefix[:8], rows)
     extra_count = guard_count = 0
     for gate in model.prefix[8:]:
         value, extra = next((v, b) for g, v, b in choices(wires) if g == gate)
+        if dominance and gate in guard_dominance(wires, rows):
+            extra = True
         extra_count += extra
         guard_count += gate[0] and 32 in gate[1:]
         wires.append(value)
-    extra_choices = [g for g, _, extra in choices(wires) if extra]
+    dominated = guard_dominance(wires, rows) if dominance else {}
+    extra_choices = [g for g, _, extra in choices(wires) if extra or g in dominated]
     return len(wires), extra_choices, extra_count, guard_count
 
 
-def exclude_unmarked(g, pool_size, extra_choices, model, *mark):
+def exclude_codes(g, extra_choices, model, *mark):
     # With a mark literal the clause charges this gate. Without one it
     # excludes the gate. Both orientations of every physical gate are covered.
     for op, a, b in extra_choices:
@@ -58,14 +77,28 @@ def exclude_unmarked(g, pool_size, extra_choices, model, *mark):
         model.clause(literal, -g.left[a], -g.right[b], *mark)
         if a != b:
             model.clause(literal, -g.left[b], -g.right[a], *mark)
+
+
+def exclude_unmarked(g, pool_size, extra_choices, model, *mark):
+    exclude_codes(g, extra_choices, model, *mark)
     for k in range(pool_size, len(g.left)):
         # A repeated operand copies a newly created wire with either operator.
         model.clause(-g.left[k], -g.right[k], *mark)
 
 
-def prune_boundary(model, rows):
+def normalize_suffix(model, rows):
+    """Choose a separator with maximum guard reads among the unfixed gates."""
+    wires = columns(model.prefix, rows)
+    if len(wires) <= 32:
+        return
+    codes = guard_dominance(wires, rows)
+    for gate in model.gates:
+        exclude_codes(gate, codes, model)
+
+
+def prune_boundary(model, rows, dominance=False):
     """At h >= 28 every flexible gate after gate eight must be an explicit guard read."""
-    pool_size, extra_choices, extra_count, _ = fixed_state(model, rows)
+    pool_size, extra_choices, extra_count, _ = fixed_state(model, rows, dominance)
     if extra_count:
         model.clause()
         return

@@ -1,0 +1,25 @@
+let Column := Nat → Bool
+let G := Bool × Nat × Nat
+let wire (s : List Column) (i : Nat) := s.getD i (fun _ => false)
+let cheap (g : Bool × Nat × Nat) := g.1 && (g.2.1 == 32 || g.2.2 == 32)
+let step (s : List Column) (g : Bool × Nat × Nat) :=
+  if g.1 then s ++ [fun r => wire s g.2.1 r && wire s g.2.2 r]
+  else s ++ [fun r => wire s g.2.1 r || wire s g.2.2 r]
+
+let val (s : List Column) (g : G) (r : Nat) := if g.1 then wire s g.2.1 r && wire s g.2.2 r else wire s g.2.1 r || wire s g.2.2 r
+let dominates (s : List Column) (g k : G) :=
+  (∀ p : Fin 52, val s g p.val = true → val s k p.val = true) ∧
+  (∀ j : Fin 468, val s k (52+j.val) = true → val s g (52+j.val) = true)
+
+
+let legal (n : Nat) (g : G) := g.2.1 < n ∧ g.2.2 < n
+let valid (n : Nat) (gs : List G) := ∀ i : Fin gs.length, legal (n+i.val) (gs[i.val]'i.isLt)
+let wins (s : List Column) (gs : List G) (o : Nat) :=
+  (∀ p : Fin 52, wire (gs.foldl step s) o p.val = true) ∧
+  (∀ j : Fin 468, wire (gs.foldl step s) o (52+j.val) = false)
+let normal (s : List Column) (gs : List G) := ∀ (pre : List G) (g : G) (tail : List G),
+  gs = pre ++ g :: tail → cheap g = false →
+  ∀ k : G, legal (s.length+pre.length) k → cheap k = true → ¬dominates (pre.foldl step s) g k
+∀ (s : List Column) (gs : List G) (o : Nat), valid s.length gs → wins s gs o →
+  ∃ ys : List G, ys.length = gs.length ∧ valid s.length ys ∧ wins s ys o ∧
+    gs.countP cheap ≤ ys.countP cheap ∧ normal s ys
