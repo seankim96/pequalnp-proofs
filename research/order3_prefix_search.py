@@ -99,8 +99,11 @@ class Encoding:
 
     def require_at_least(self, literals: list[int], minimum: int):
         """Force a threshold by witnessing enough true literals in successive prefixes."""
-        if not 0 <= minimum <= len(literals):
-            raise ValueError("threshold out of range")
+        if minimum <= 0:
+            return
+        if minimum > len(literals):
+            self.clause()
+            return
         reached = [True] + [False] * minimum
         for literal in literals:
             next_row = [True]
@@ -136,6 +139,7 @@ class Encoding:
             self.clause(gate.is_and, -bit, left, right)
             wires.append(bit)
         self.clause(wires[-1] if answer else negate(wires[-1]))
+        return wires
 
     def write(self, path: Path):
         with path.open("w") as stream:
@@ -164,7 +168,7 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
            semantic_boundary: bool = False, semantic_budget: bool = False, dominating_guard: bool = False, normalize_guard: bool = False, eleventh: Gate | None = None,
            twelfth: Gate | None = None, wire_credit: bool = False, adaptive_charge: bool = False, trace_budget: bool = False,
            gate14_trace: bool = False, preloaded_trace: bool = False, first_or_lines: bool = False, guard_read_ceiling: bool = False, branch_packing_tree: bool = False,
-           thirteenth: Gate | None = None, fourteenth: Gate | None = None, fifteenth: Gate | None = None) -> str:
+           thirteenth: Gate | None = None, fourteenth: Gate | None = None, fifteenth: Gate | None = None, later: tuple[Gate, ...] = (), colored_trace: bool = False, or_trace_density: bool = False, preload_density: bool = False, sparse_density: bool = False) -> str:
     rows = test_rows()
     if point_quadrangles:
         point_mask = (1 << 13) - 1
@@ -201,7 +205,23 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
             raise ValueError(f"{name} gate needs its full prefix and ordered earlier wires")
         prefix += (gate,)
         label += f" then {'AND' if op else 'OR'}({a},{b})"
+    if later and (len(prefix) != 15 or len(later)>48):
+        raise ValueError("continuation requires fifteen fixed gates and room at size 63")
+    for op,a,b in later:
+        if not 0 <= a <= b < 26+len(prefix):
+            raise ValueError("continuation must read ordered earlier wires")
+        prefix += ((op,a,b),)
+        label += f" then {'AND' if op else 'OR'}({a},{b})"
     model = Encoding(prefix, 63)
+    if preload_density:
+        from order3_case35_preload_density import constrain as constrain_preload_density
+        constrain_preload_density(model,rows,min_guard_reads)
+    if or_trace_density:
+        from order3_case35_colored_trace import constrain_density
+        constrain_density(model,rows,min_guard_reads)
+    if colored_trace:
+        from order3_case35_colored_trace import constrain as constrain_colors
+        constrain_colors(model,rows,min_guard_reads)
     canonical_six = (prefix[:6] == ((False, 0, 1), (False, 3, 9), (True, 15, 27),
                                      (True, 17, 26), (True, 13, 26), (True, 13, 27)))
     guarded_prefix = canonical_six and seventh is not None and not seventh[0] and seventh[1:] in CASE35_GUARDS
@@ -363,8 +383,14 @@ def search(case: int, seconds: int, solver: str, out: Path | None, all_positives
         if not 0 <= n < len(rows) - 52:
             raise ValueError("negative seed index outside the selected negative family")
         active.add(52 + n)
+    positive_wires = []
     for i in sorted(active):
-        model.add_row(*rows[i])
+        wires = model.add_row(*rows[i])
+        if sparse_density and rows[i][1]:
+            positive_wires.append(wires)
+    if sparse_density:
+        from order3_case35_preload_density import constrain_sparse
+        constrain_sparse(model,rows,min_guard_reads,positive_wires)
     candidates = 0
     deadline = monotonic() + seconds
     with tempfile.TemporaryDirectory() as tmp:
@@ -443,6 +469,11 @@ def main():
                         help="fix the twelfth gate after the eleventh")
     parser.add_argument("--thirteenth", nargs=3, metavar=("OP", "LEFT", "RIGHT"))
     parser.add_argument("--fourteenth", nargs=3, metavar=("OP", "LEFT", "RIGHT"))
+    parser.add_argument("--after-fifteen", action="append", nargs=3, default=[], metavar=("OP","LEFT","RIGHT"))
+    parser.add_argument("--sparse-density", action="store_true", help="require three positive flags per paid AND at the 24-read boundary")
+    parser.add_argument("--preload-density", action="store_true", help="exclude preloaded ANDs at the 24-read boundary")
+    parser.add_argument("--or-trace-density", action="store_true", help="apply the eight-probe OR incidence bound")
+    parser.add_argument("--colored-trace", action="store_true", help="apply the sixteen distinct OR parents bound at 25 reads")
     parser.add_argument("--fifteenth", nargs=3, metavar=("OP", "LEFT", "RIGHT"))
     parser.add_argument("--branch-packing-tree", action="store_true",
                         help="certify the residual 19 ORs after gate fourteen OR(14,18)")
@@ -527,12 +558,17 @@ def main():
         return
     if args.seconds < 1:
         parser.error("--seconds must be positive")
+    later = []
+    for op,a,b in args.after_fifteen:
+        if op.upper() not in ("AND","OR"):
+            parser.error("expected AND or OR for continuation")
+        later.append((op.upper()=="AND",int(a),int(b)))
     print(search(args.case, args.seconds, args.solver, args.witness, args.all_positives,
                  args.point_quadrangles, args.zero_third, third, fourth, not args.no_tail_pruning, args.operator_bounds, *extra_gates[:5], negative_seeds=tuple(args.negative_seed), tenth=extra_gates[5],
                  shared_guard_budget=args.shared_guard_budget, min_guard_reads=args.min_guard_reads,
                  semantic_boundary=args.semantic_boundary, semantic_budget=args.semantic_budget, dominating_guard=args.dominating_guard, normalize_guard=args.normalize_guard, eleventh=extra_gates[6],
                  twelfth=extra_gates[7], wire_credit=args.wire_credit, adaptive_charge=args.adaptive_charge, trace_budget=args.trace_budget, gate14_trace=args.gate14_trace,
-                 thirteenth=extra_gates[8], fourteenth=extra_gates[9], fifteenth=extra_gates[10],
+                 thirteenth=extra_gates[8], fourteenth=extra_gates[9], fifteenth=extra_gates[10], later=tuple(later), colored_trace=args.colored_trace, or_trace_density=args.or_trace_density, preload_density=args.preload_density, sparse_density=args.sparse_density,
                  preloaded_trace=args.preloaded_trace, first_or_lines=args.first_or_lines, guard_read_ceiling=args.guard_read_ceiling, branch_packing_tree=args.branch_packing_tree))
 
 

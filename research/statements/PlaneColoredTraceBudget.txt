@@ -1,0 +1,24 @@
+let Column := Nat → Bool
+let Gate := Bool × Bool × Nat × Nat × Option Nat
+let wire (s : List Column) (i : Nat) : Column := s.getD i (fun _ => false)
+let good (p a b : Nat) (w : Column) := w p = true → w a = true ∨ w b = true
+let step (guards : Nat → Column) (s : List Column) (g : Gate) : List Column :=
+  let x := wire s g.2.2.1
+  let y := wire s g.2.2.2.1
+  s ++ [fun v => (if g.1 then x v && y v else x v || y v) &&
+    (g.2.2.2.2.elim true (fun k => guards k v))]
+
+let charged (g : Gate) := g.1 && g.2.1
+let synced (guards : Nat → Column) (s : List Column) (a b : Nat) (gs : List Gate) : Prop :=
+  gs.foldr (fun g next state =>
+    (g.1 = true → g.2.1 = false → wire state g.2.2.1 a = wire state g.2.2.1 b) ∧
+      next (step guards state g)) (fun _ => True) s
+∀ (guards : Nat → Column) (s : List Column) (gs : List Gate) (o q : Nat)
+    (K : Finset (Fin 468)) (color : K → Fin q),
+    (∀ i j : K, i.val < j.val → ∃ p : Fin 52,
+      (∀ k, guards k p.val = true → guards k (52+i.val.val) = true ∧ guards k (52+j.val.val) = true) ∧
+      ∀ w ∈ s, good p.val (52+i.val.val) (52+j.val.val) w) →
+    (∀ i j : K, color i = color j → synced guards s (52+i.val.val) (52+j.val.val) gs) →
+    (∀ p : Fin 52, wire (gs.foldl (step guards) s) o p.val = true) →
+    (∀ i : Fin 468, wire (gs.foldl (step guards) s) o (52+i.val) = false) →
+    K.card ≤ q * 2 ^ gs.countP charged
