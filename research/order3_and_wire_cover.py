@@ -1,5 +1,8 @@
 """Apply the AND input wire cover bound to prefixes of the order-three plane problem."""
 from collections import Counter, defaultdict
+from functools import reduce
+from itertools import combinations
+from operator import or_
 
 from order3_case35_star_packings import POINT7, PREFIX13, columns
 from order3_prefix_search import representatives, test_rows
@@ -31,6 +34,24 @@ def cover_bounds(prefix, rows):
 
 def main():
     rows = test_rows()
+    negatives = [mask for mask, accepted in rows if not accepted]
+    primary = [sum(1 << j for j, mask in enumerate(negatives) if (mask >> wire) & 1)
+               for wire in range(26)]
+    allowed_pairs = []
+    for size in (1, 2, 3):
+        weights = Counter()
+        for operands in combinations(primary, size):
+            column = reduce(or_, operands)
+            weight = column.bit_count()
+            weights[weight] += 1
+            if size == 2 and 212 <= weight <= 256:
+                allowed_pairs.append(column)
+        print(f'Primary OR supports of size {size}, by count of true negatives:', dict(sorted(weights.items())))
+    if len(set(allowed_pairs)) != len(allowed_pairs):
+        raise ValueError("different allowed pairs have the same negative column")
+    products = Counter((left & right).bit_count() for left, right in combinations(allowed_pairs, 2))
+    print(f'First AND on different allowed pair supports: {sum(products.values())} pairs, '
+          f'{min(products)} to {max(products)} true negatives')
     groups = defaultdict(list)
     for case, prefix in enumerate(representatives()):
         groups[min(cover_bounds(prefix, rows))].append(case)
