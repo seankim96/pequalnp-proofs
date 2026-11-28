@@ -1,0 +1,4 @@
+    ∀ (pre post : List PEqualNP.CircuitLowerBounds.Gate) (n src out : Nat), src < n + pre.length →
+      let C : PEqualNP.CircuitLowerBounds.Circuit := ⟨pre ++ (⟨.or,[src]⟩ : PEqualNP.CircuitLowerBounds.Gate) :: post,out⟩
+      ∃ D : PEqualNP.CircuitLowerBounds.Circuit, D.size + 1 = C.size ∧ (PEqualNP.MetaComplexity.Monotone2 C → PEqualNP.MetaComplexity.Monotone2 D) ∧
+        ∀ r : List Bool, r.length = n → D.eval r = C.eval r
