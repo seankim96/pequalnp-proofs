@@ -85,3 +85,33 @@ python research/order3_prefix_search.py "${common[@]}" --after-fifteen OR 0 2 --
 python research/order3_prefix_search.py "${common[@]}" --after-fifteen AND 6 32 --after-fifteen OR 12 45 --after-fifteen OR 0 46 --after-fifteen OR 9 47 --after-fifteen AND 3 48 --seconds 90 --solver "$(command -v cadical)"
 python research/order3_prefix_search.py "${common[@]}" --after-fifteen OR 4 12 --seconds 60 --solver "$(command -v cadical)"
 ```
+
+## Refinement of the OR(4,12) continuation
+
+The 78-row CSV above is the fixed starting census for this refinement. Fix the fourth ordinary gate to OR(Y,t), where Y = OR(4,12) and t is any of the eleven other raw points. For each fourth gate, enumerate every fifth OR of older wires or their guard masks, then test the sixth AND on all operand pairs. An operand mask changes a raw intersection P to P AND guard, so the checker explicitly tests both columns. This includes sixth gates that ignore the most recent OR.
+
+Before the refinement, the eleven branches had 358 distinct remaining products and 255 signed-maximal representatives across their union. New independently replayed pools total 255. Their integer OR floors are 20 for 50 pools, 21 for 113 pools, 22 for 92 pools. After replay, 11 of eleven fourth-gate branches have zero residuals. The fifth-gate counts below are distinct truth columns. The fifth OR can read any earlier wire or its guard mask.
+
+| Fourth point t | Fifth OR columns | Fifth columns with residuals before | Products before | Fifth columns with residuals after | Products after |
+|---:|---:|---:|---:|---:|---:|
+| 0 | 2,848 | 61 | 56 | 0 | 0 |
+| 1 | 2,847 | 54 | 51 | 0 | 0 |
+| 2 | 2,856 | 11 | 6 | 0 | 0 |
+| 3 | 2,850 | 55 | 52 | 0 | 0 |
+| 5 | 2,857 | 6 | 6 | 0 | 0 |
+| 6 | 2,854 | 11 | 6 | 0 | 0 |
+| 7 | 2,854 | 7 | 7 | 0 | 0 |
+| 8 | 2,857 | 49 | 47 | 0 | 0 |
+| 9 | 2,846 | 53 | 49 | 0 | 0 |
+| 10 | 2,857 | 49 | 47 | 0 | 0 |
+| 11 | 2,857 | 52 | 50 | 0 | 0 |
+
+The new two-preload certificates are valid without fixing that fourth OR. Applied to the unrestricted fourth and fifth ORs with third OR(4,12), the archived baseline union falls from 1,103 products to **638** (513 independent, 184 dependent, 309 signed-maximal). Fresh enumeration of the full raw pair agrees byte for byte with filtering the old frontier. This remains the smallest of the 42 open raw pairs after refiltering all their baseline sets. Resume with the updated file `case35-h19-4-12-after-attachments-48.json.gz`; its decompressed SHA-256 is `987cfe1a9ecee8463edddabb8ce61caa77bd686b4abc1022d2449dff836726de`.
+
+The same eight-second HiGHS clique budget and exact integer replay apply to these extra pools. The 60-second direct SAT verdict for OR(4,12) remains UNKNOWN. To regenerate the updated data, run from the research checkout.
+
+```sh
+python research/order3_case35_h19_fourth_point_attachment.py --parent-cache /tmp/case35-parent-48.json --write-frontier /tmp/frontier-after-attachments.json
+```
+
+The final public status refresh at 2026-11-28T11:00:55.407Z still listed L-meta-2625 as a conjecture. Upstream main at 890bd876a5307fc2b1d3278e090bcd6842d93f9d retained the same three reductions, the same checked definitions, and the same checker. No lease was issued in this session.
