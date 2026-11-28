@@ -1,0 +1,10 @@
+∀ (n h t : Nat) (P N : List Bool → Prop) (mask : List Bool → Bool),
+    (∀ r, r.length = n → N r → mask r = false) →
+    let has := fun (budget : Nat) (sel : List Bool → Bool) (pos : List Bool → Prop) =>
+      ∃ C : PEqualNP.CircuitLowerBounds.Circuit, PEqualNP.MetaComplexity.Monotone2 C ∧ C.size ≤ budget ∧
+        C.gates.countP (fun g => PEqualNP.CircuitLowerBounds.GateOp.rec (motive := fun _ => Bool) true false false (fun _ => false) false g.op) ≤ h ∧
+        ∀ r : List Bool, r.length = n →
+          (pos r → C.eval (sel r :: r) = true) ∧ (N r → C.eval (sel r :: r) = false)
+    let rest := fun r => P r ∧ mask r = false
+    (has t mask P → has t (fun _ => false) rest) ∧
+    (has t (fun _ => false) rest → has (t+1) mask P)
