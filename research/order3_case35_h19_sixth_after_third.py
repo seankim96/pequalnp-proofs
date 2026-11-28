@@ -15,11 +15,18 @@ from order3_case35_h19_fifth_after_first_or import INDEPENDENT, DEPENDENT
 from order3_case35_h19_sixth_gate import SIXTH
 
 
-def products(partner=10, point=5):
+def third_column(base, point, partner, mask=0):
+    """Use bit 0 for a guarded left input and bit 1 for a guarded right input."""
+    left = base[point] & base[32] if mask & 1 else base[point]
+    right = base[partner] & base[32] if mask & 2 else base[partner]
+    return left | right
+
+
+def products(partner=10, point=5, mask=0):
     base = parent_pool()
     guard = base[32]
     a, x = base[3] & base[15], base[12] | base[42]
-    values = guard_unions([*base, a, x, base[point] | base[partner]])
+    values = guard_unions([*base, a, x, third_column(base, point, partner, mask)])
     masked = {v: v & guard for v in values}
     needed = set()
     for y, z in combinations_with_replacement(values, 2):
@@ -31,11 +38,11 @@ def products(partner=10, point=5):
     return len(values), needed
 
 
-def supply_test(checked, partner=10, point=5):
+def supply_test(checked, partner=10, point=5, mask=0):
     base = parent_pool()
     g = base[32]
     a, x = base[3] & base[15], base[12] | base[42]
-    old = set(base) | {a,x,base[point] | base[partner]}
+    old = set(base) | {a,x,third_column(base, point, partner, mask)}
     replacements = {w for c,d,k in checked if k >= 20
                     and any(dominates(s,a) for s in (c,d,c & g,d & g))
                     for w in (c,d,c & g,d & g)}
@@ -44,9 +51,18 @@ def supply_test(checked, partner=10, point=5):
     replacements |= old | {w & g for w in old}
     positive = (1 << 52) - 1
 
+    # A dominating column must contain every required positive bit. Looking
+    # up donors of the rarest required flag preserves the full search.
+    by_flag = [[w for w in replacements if w & (1 << bit)] for bit in range(52)]
+
     @lru_cache(None)
     def negative_requirements(flags):
-        return [w >> 52 for w in replacements if flags & ~w == 0]
+        candidates = replacements
+        if flags:
+            groups = (by_flag[bit] for bit in range(52) if flags & (1 << bit))
+            candidates = min(groups, key=len)
+        masks = {w >> 52 for w in candidates if flags & ~w == 0}
+        return sorted(masks, key=int.bit_count)
 
     @lru_cache(None)
     def covered(p):
@@ -55,18 +71,18 @@ def supply_test(checked, partner=10, point=5):
     return covered
 
 
-def unexcluded(products, checked, partner=10, point=5):
-    covered = supply_test(checked, partner, point)
+def unexcluded(products, checked, partner=10, point=5, mask=0):
+    covered = supply_test(checked, partner, point, mask)
     return {p for p in products if not covered(p)}
 
 
-def dependent_frontier(checked, partner=10, point=5):
+def dependent_frontier(checked, partner=10, point=5, mask=0):
     base = parent_pool()
     g = base[32]
     a, x = base[3] & base[15], base[12] | base[42]
-    old = set(base) | {a,x,base[point] | base[partner]}
+    old = set(base) | {a,x,third_column(base, point, partner, mask)}
     free = old | {w & g for w in old}
-    covered = supply_test(checked, partner, point)
+    covered = supply_test(checked, partner, point, mask)
 
     @lru_cache(None)
     def old_products(z):
@@ -77,7 +93,7 @@ def dependent_frontier(checked, partner=10, point=5):
     pairs = 0
     remaining_triples = 0
     residual = set()
-    for y in guard_unions([*base,a,x,base[point] | base[partner]]):
+    for y in guard_unions([*base,a,x,third_column(base, point, partner, mask)]):
         yg = y & g
         choices = {u | v for u in (y,yg) for v in free | {y,yg}}
         pairs += len(choices)
