@@ -25,3 +25,15 @@ Starting from the SHA-256 above, the 467 signed-maximal representatives of the 1
 The cumulative result is 38 resolved raw third point pairs out of 78. With earlier-wire substitutions, 1,246 of the 2,585 possible third columns are excluded for a sixth ordinary AND. The next raw third OR is **OR(0,12)**. Fresh enumeration of its 3,678,828 independent pairs and 342,236 dependent pairs agrees exactly with refiltering its earlier frontier. There are 744 distinct independent products and 349 dependent products, with 1,048 in their union and 448 signed-maximal representatives. The updated frontier in `case35-h19-0-12-sixth-frontier-49.json.gz` has uncompressed SHA-256 `6668540e7e91efd1487272103df0f705589ed31210fa53469ecae45b34548000`.
 
 The closures apply to the stated fixed prefix and gate budget. The project still listed the unrestricted 63-gate question as a conjecture at its 2026-11-28 11:37:25 UTC snapshot.
+
+## Jointly observing several OR-block outputs
+
+PlaneJointGuardedOrLowerBound proves that a block with k binary ORs, any number of shared-guard masks, and r observed output labels has at most k+r distinct essential initial wire labels. A label is essential if a pair of initial states agrees everywhere else but one of the observed outputs differs, with the guard held fixed within that pair. The witnessing pair, guard value and observed output may vary by label. Thus five distinct essential initial labels jointly visible at two observed outputs require at least three ORs. This can be applied to the pair of operands before the candidate AND when the five single-wire sensitivity witnesses are supplied.
+
+Backward propagation starts with all observed labels together. For a demanded destination, remove every occurrence and insert its two operands for an OR or its one operand for a mask. Each OR increases list length by at most one, even with sharing or repeated writes. Equal initial values on the resulting root list force all observed outputs to agree. Every distinct essential label must therefore be in that list.
+
+The repository-pinned Lean 4.36.0 checker returned ACCEPTED (check), rechecking 1,720 constants. The axiom list was propext, Quot.sound and Classical.choice. All 87 definition digests matched the upstream source, and a separate import checked the exact theorem signature. The one-file proof commit is 142d8dd80da2f29520c66378d38c494196794113 on top of upstream 17504801b50c8a038e95149c91fa3ce63dab38e6. This lemma is a structural OR-block lower bound.
+
+```sh
+node tools/check-lean.mjs lean/PEqualNP/Research/PlaneJointGuardedOrLowerBound.lean research/statements/PlaneJointGuardedOrLowerBound.txt check
+```

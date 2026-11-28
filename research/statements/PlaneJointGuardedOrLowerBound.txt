@@ -1,0 +1,10 @@
+∀ (isOr : Nat → Bool) (dst left right : Nat → Nat) (gates outs essential : List Nat),
+    let step := fun (g : Bool) (s : Nat → Bool) (i w : Nat) =>
+      if w = dst i then
+        if isOr i then s (left i) || s (right i) else s (left i) && g
+      else s w
+    essential.Nodup →
+    (∀ w ∈ essential, ∃ (g : Bool) (s t : Nat → Bool) (v : Nat), v ∈ outs ∧
+      (∀ j, j ≠ w → s j = t j) ∧
+      gates.foldl (step g) s v ≠ gates.foldl (step g) t v) →
+    essential.length ≤ gates.countP isOr + outs.length
