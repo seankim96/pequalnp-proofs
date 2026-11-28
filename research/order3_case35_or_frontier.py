@@ -170,7 +170,9 @@ def latest_exclusions(base):
         if x in prior:
             raise ValueError("duplicate first OR in cumulative ledger")
         prior = prior | {x}
-    return prior
+    from order3_case35_final_two import replay_final_two
+    shared = proved(base) | {exclude_two_three(base)} | cross_bank_exclusions(base) | exclusions(base)
+    return prior | replay_final_two(base, prior | shared)
 
 
 def _exclude_before_fourth(base, first, prior, filename, count, expected_seconds=None, *, cross_records=()):

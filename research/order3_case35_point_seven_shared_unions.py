@@ -105,6 +105,16 @@ def constrain(model, rows, h):
     from order3_case35_or_frontier import latest_exclusions
     closed = (proved(base) | cross_bank_exclusions(base) | exclusions(base) |
               {exclude_two_three(base)} | latest_exclusions(base))
+    if first_survivors(base) <= closed:
+        # A regular AND cannot precede the first OR (the initial preload
+        # certificates), and every first OR of base or guard-masked wires is
+        # excluded. Guard reads alone cannot produce the target column.
+        from order3_case35_point_seven_or_order import old_replacements
+        old_replacements(base)
+        if (1 << 52) - 1 in {*base, *(v & base[32] for v in base)}:
+            raise ValueError("the guard-only suffix can already supply the target")
+        model.clause()
+        return
     pool = columns(model.prefix,rows)
     for i,(op,_,_) in enumerate(model.prefix[17:],43):
         if not op and pool[i] in closed:
