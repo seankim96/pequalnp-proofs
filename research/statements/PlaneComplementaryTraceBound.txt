@@ -1,0 +1,10 @@
+∀ {k m : Nat} (D E : Finset (Fin 256))
+    (left right : Fin k → Fin 256) (weightL weightR : Fin 256 → Nat)
+    (orOn : Fin k → Fin m → Bool) (width : Fin k → Nat) (t u : Nat),
+    Function.Injective left → Function.Injective right →
+    (∀ i, left i ∈ D) → (∀ i, right i ∈ E) →
+    (∀ i, weightL (left i) + weightR (right i) ≤
+      (Finset.univ.filter (fun j => orOn i j = true)).card) →
+    (∀ i, width i ≤ 1 + (Finset.univ.filter (fun j => orOn i j = false)).card) →
+    (∑ i, width i) + k * (t + u) ≤ k * (m + 1) +
+      (∑ x ∈ D, (t - weightL x)) + (∑ x ∈ E, (u - weightR x))
