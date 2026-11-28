@@ -1,0 +1,43 @@
+let differences : Finset (Fin 13) := {0,1,3,9}
+let reps : List (Nat × Nat) := [(7,904),(13,2848),(19,708),(21,2720),(25,2656),(37,2440),(41,2370),(133,808)]
+let multipliers : List (Fin 13) := [1,3,9]
+let flag (p w : Fin 13) : Fin 26 → Bool :=
+  fun i => decide (i = Fin.castAdd 13 p ∨ i = Fin.natAdd 13 w)
+let orbit (z : Nat × Nat) (a t : Fin 13) (dual : Bool) : Fin 26 → Bool :=
+  let bit := fun (u v : Nat) (i : Fin 13) =>
+    if dual then v.testBit (-(a*i+t)).val else u.testBit (a*i+t).val
+  Fin.append (bit z.1 z.2) (bit z.2 z.1)
+let andPair (g : PEqualNP.CircuitLowerBounds.Gate) : Option (Nat × Nat) :=
+  let i := g.inputs.getD 0 0
+  let j := g.inputs.getD 1 0
+  let isAnd := PEqualNP.CircuitLowerBounds.GateOp.rec (motive := fun _ => Bool)
+    true false false (fun _ => false) false g.op
+  if isAnd = true ∧ g.inputs.length = 2 ∧ i ≠ j then some (i,j) else none
+let operands (gs : List PEqualNP.CircuitLowerBounds.Gate) := gs.filterMap andPair
+let select (gs : List PEqualNP.CircuitLowerBounds.Gate) (right : Fin (operands gs).length → Bool)
+    (k : Fin (operands gs).length) : Nat :=
+  if right k then ((operands gs).get k).2 else ((operands gs).get k).1
+∀ C : PEqualNP.CircuitLowerBounds.Circuit, PEqualNP.MetaComplexity.Monotone2 C →
+    (∀ p w : Fin 13, (∃ d ∈ differences, p = w+d) → PEqualNP.MetaComplexity.circuitFun 26 C (flag p w) = true) →
+    (∀ z ∈ reps, ∀ a ∈ multipliers, ∀ t d, PEqualNP.MetaComplexity.circuitFun 26 C (orbit z a t d) = false) →
+    let es := operands C.gates
+    9 ≤ es.length ∧ (es.length = 9 →
+      (∀ k : Fin es.length, 26 ≤ (es.get k).1 ∧ 26 ≤ (es.get k).2) ∧
+      (∀ (i j : Fin es.length), i ≠ j → ∀ v : Nat,
+        (v = (es.get i).1 ∨ v = (es.get i).2) →
+        (v = (es.get j).1 ∨ v = (es.get j).2) → False) ∧
+      ∃ rows : Fin 468 → (Fin 26 → Bool),
+        (∀ j, ∃ z ∈ reps, ∃ a ∈ multipliers, ∃ t d, rows j = orbit z a t d) ∧
+        ∀ right : Fin es.length → Bool,
+          let f := fun (j : Fin 468) (k : Fin es.length) =>
+            (C.wires (List.ofFn (rows j))).getD (select C.gates right k) false
+          Function.Injective f ∧
+          (∀ (s : Finset (Fin es.length)) (b : Fin es.length → Bool),
+            (Finset.univ.filter (fun j => ∀ k ∈ s, f j k = b k)).card ≤ 2^(es.length-s.card)) ∧
+          (∀ k, let w := (Finset.univ.filter (fun j => f j k = true)).card
+                212 ≤ w ∧ w ≤ 256) ∧
+          (∀ (u v : Fin es.length), u ≠ v →
+            let d := (Finset.univ.filter (fun j => f j u ≠ f j v)).card
+            212 ≤ d ∧ d ≤ 256) ∧
+          (∀ (u v : Fin es.length), u ≠ v → ∀ a b : Bool,
+            (Finset.univ.filter (fun j => f j u = a ∧ f j v = b)).card ≤ 128))
