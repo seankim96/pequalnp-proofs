@@ -1,0 +1,9 @@
+∀ (isOr : Nat → Bool) (dst left right : Nat → Nat) (gates : List Nat) (out : Nat),
+    let step := fun (g : Bool) (s : Nat → Bool) (i w : Nat) =>
+      if w = dst i then
+        if isOr i then s (left i) || s (right i) else s (left i) && g
+      else s w
+    ∃ leaves : List (Nat × Bool), leaves.length ≤ gates.countP isOr + 1 ∧
+      ∀ (g : Bool) (inputs : Nat → Bool),
+        gates.foldl (step g) inputs out =
+          leaves.any (fun t => inputs t.1 && (!t.2 || g))
