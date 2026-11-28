@@ -1,4 +1,4 @@
-# L-meta-2625 — Closing the remaining sixth AND after OR(0,2)
+# L-meta-2625 case 35: the sixth ordinary gate after a masked point-pair OR
 
 Parent research commit cedac677b67476d2aadcb96861017baab300b83c. The project's 2026-11-28 10:20:39 UTC snapshot still lists L-meta-2625 as a conjecture. Upstream 8b3771bb237ff5671e3d9dc90f7cfc002ad34183 contains the three existing reductions 50, 317 and 487. The targeted desk returned no lease. The account has no open upstream PR, and both #7762 and #8170 have merged with accepted checks and no requested changes.
 
@@ -42,4 +42,46 @@ The repository-pinned Lean 4.36.0 checker returned ACCEPTED (check) for PlaneLin
 
 ```sh
 node tools/check-lean.mjs lean/PEqualNP/Research/PlaneLinearGuardedOrSupport.lean research/statements/PlaneLinearGuardedOrSupport.txt check
+```
+
+## Sixth-position exclusion for every masked third point pair
+
+Across the 23 exceptional raw columns, separate enumerations of the dependent and independent cases found the same union of 28,611 outstanding product columns before the new certificates were added. Signed dominance reduces their union to 8,681 maximal representatives. Discovery grouped similar representatives in envelopes of at most 24, then split unfinished groups into sixes, pairs and singletons. A proposed pool only counts after replay of its integer witnesses. We kept 3,004 pools covering the full maximal set. Their replayed OR floors were 20 for 753 pools, 21 for 1,370 pools, 22 for 881 pools. Each floor exceeds the 19 available ORs.
+
+The census rechecks all 3,342,405 common unordered independent pairs once, then tests every newly available independent pair for each choice of Y, as well as dependent ORs that read the preceding OR or its mask. A fresh census found zero residual products on each of the 23 exceptional raw columns. Together with the 209 earlier-wire substitutions above, this excludes a sixth ordinary AND for all 234 nonempty input-mask layouts. All claims in this section apply to the fixed first two ordinary operations, suffix split and test set at the top of this report.
+
+## Unmasked pairs, arbitrary third columns and the next case
+
+The CSV contains all 78 unordered pairs of distinct raw point wires, their exact independent/dependent counts and SHA-256 of the canonical residual. It labels 35 pairs covered by the numerical census, 1 otherwise resolved by a pre-existing physical wire, and 42 open. Refiltering the saved before-certificate frontiers for 68 raw pairs independently reproduced every byte of their newly enumerated residuals. The other ten raw pairs touch point 5 and had been handled by the parent work. Across the 42 open branches the union contains 45,497 distinct products. Of the 1,103 products in the smallest branch, 291 also occur in another open branch.
+
+After A and X there are 2,585 distinct truth columns for a third OR of any available wires, allowing either operand to carry the guard. An existing physical wire other than wire 32 signed-dominates 1,210 of them. Allowing replacement by a resolved raw point-pair OR raises coverage to 1,244. Such a replacement uses the same third ordinary OR slot and can leave old mask wires unused. The other 1,341 are outside this dominance exclusion.
+
+Resume from **Y = OR(4,12)**. Its residual contains 899 distinct independent products and 263 distinct dependent products, with 1,103 in their union and 522 signed-maximal representatives. The canonical decompressed bytes have SHA-256 `c6e70836cb4953711ae71307e8932250b738c5630373a8bc2b225d74128a4866` and are archived as `case35-h19-4-12-sixth-frontier-48.json.gz`. An open product is a remaining search case. The public project snapshot at 2026-11-28T10:51:41.042Z still marks the full unit as a conjecture.
+
+Replay the ledgers, output the table, or reproduce the selected frontier from the same verified parent cache. Compare the uncompressed frontier and CSV to the archives in this directory.
+
+```sh
+python research/order3_case35_h19_masked_point_pairs.py --parent-cache /tmp/case35-parent-48.json --scope all-points --census-csv /tmp/case35-pairs.csv
+python research/order3_case35_h19_masked_point_pairs.py --parent-cache /tmp/case35-parent-48.json --pair 4 12 --write-frontier /tmp/case35-frontier.json
+```
+
+Two additional direct CEGAR SAT queries used the repository-pinned CaDiCaL. They allow at least nineteen guard reads and do not fix the suffix AND/OR split. The explicitly masked third input, followed by two ORs and a sixth ordinary AND, returned **UNKNOWN, 56 encoded rows, 0 decoded candidates** at 90 seconds. The unfixed continuation after the selected raw third OR returned **UNKNOWN, 56 encoded rows, 0 decoded candidates** at 60 seconds. Solver timeouts count as UNKNOWN. To reproduce all three direct budgets from this report, run in Bash with `cadical` from the pinned Lean toolchain on PATH.
+
+```bash
+common=(
+  --case 35 --third AND 15 27 --fourth AND 17 26
+  --fifth AND 13 26 --sixth AND 13 27 --seventh OR 2 6
+  --eighth AND 1 24 --ninth AND 15 32 --tenth AND 25 32
+  --all-positives --negative-seed 1 --negative-seed 2
+  --operator-bounds --shared-guard-budget --min-guard-reads 19
+  --eleventh AND 0 17 --wire-credit --twelfth AND 0 23
+  --adaptive-charge --thirteenth AND 0 25 --trace-budget
+  --preloaded-trace --guard-read-ceiling --or-trace-density
+  --fourteenth OR 17 19 --fifteenth OR 20 24 --after-fifteen OR 39 40
+  --after-fifteen AND 7 41 --star-probes --after-fifteen AND 3 15
+  --after-fifteen OR 12 42
+)
+python research/order3_prefix_search.py "${common[@]}" --after-fifteen OR 0 2 --after-fifteen OR 4 45 --after-fifteen OR 7 46 --after-fifteen AND 14 47 --seconds 75 --solver "$(command -v cadical)"
+python research/order3_prefix_search.py "${common[@]}" --after-fifteen AND 6 32 --after-fifteen OR 12 45 --after-fifteen OR 0 46 --after-fifteen OR 9 47 --after-fifteen AND 3 48 --seconds 90 --solver "$(command -v cadical)"
+python research/order3_prefix_search.py "${common[@]}" --after-fifteen OR 4 12 --seconds 60 --solver "$(command -v cadical)"
 ```
