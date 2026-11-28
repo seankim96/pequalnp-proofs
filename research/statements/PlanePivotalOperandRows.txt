@@ -1,0 +1,14 @@
+∀ (pre post : List PEqualNP.CircuitLowerBounds.Gate) (out n a b : Nat) (isAnd : Bool) (P N : List Bool → Prop),
+    let op : PEqualNP.CircuitLowerBounds.GateOp := if isAnd then .and else .or
+    let C := PEqualNP.CircuitLowerBounds.Circuit.mk (pre ++ ⟨op,[a,b]⟩ :: post) out
+    let separates := fun (D : PEqualNP.CircuitLowerBounds.Circuit) =>
+      ∀ r : List Bool, r.length = n → (P r → D.eval r = true) ∧ (N r → D.eval r = false)
+    PEqualNP.MetaComplexity.Monotone2 C → separates C →
+    (∀ D, PEqualNP.MetaComplexity.Monotone2 D → separates D → C.size ≤ D.size) →
+    a < n + pre.length → b < n + pre.length →
+    ∀ orientation : Bool, ∃ r : List Bool, r.length = n ∧
+      (if isAnd then N r else P r) ∧
+      let w := (PEqualNP.CircuitLowerBounds.Circuit.mk pre out).wires r
+      w.getD a false = orientation ∧ w.getD b false = !orientation ∧
+      (PEqualNP.CircuitLowerBounds.Circuit.mk post out).eval (w ++ [false]) = false ∧
+      (PEqualNP.CircuitLowerBounds.Circuit.mk post out).eval (w ++ [true]) = true
