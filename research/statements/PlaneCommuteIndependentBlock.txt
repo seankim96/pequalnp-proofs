@@ -1,0 +1,7 @@
+∀ (left right : Nat → Nat) (gate : Nat → Bool → Bool → Bool)
+    (j : Nat) (block suffix : List Nat),
+    (∀ i ∈ block, i ≠ j ∧ left i ≠ j ∧ right i ≠ j ∧ left j ≠ i ∧ right j ≠ i) →
+    let step := fun (s : Nat → Bool) (i : Nat) (w : Nat) =>
+      if w = i then gate i (s (left i)) (s (right i)) else s w
+    ∀ s : Nat → Bool,
+      (block ++ j :: suffix).foldl step s = (j :: (block ++ suffix)).foldl step s
