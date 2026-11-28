@@ -45,3 +45,64 @@ python research/order3_case35_h19_seventh_point_chain.py --parent-cache /tmp/cas
 ```
 
 At i=4, fixing V = OR(14,47) and P = AND(1,48) in the broader direct SAT search gave UNKNOWN at 120 seconds, on 56 encoded rows and zero decoded candidates. Reproduce with the direct 90-second command above, replacing its final AND(14,47) by OR(14,47), AND(1,48) and using a 120-second limit.
+
+## Replaying the direct SAT queries
+
+Use Bash at the research checkout root with the pinned Lean toolchain active. Each run also enforces the 63-gate size from case 35.
+
+```bash
+common=(
+  --case 35 --third AND 15 27 --fourth AND 17 26 --fifth AND 13 26
+  --sixth AND 13 27 --seventh OR 2 6 --eighth AND 1 24 --ninth AND 15 32
+  --tenth AND 25 32 --eleventh AND 0 17 --twelfth AND 0 23
+  --thirteenth AND 0 25 --fourteenth OR 17 19 --fifteenth OR 20 24
+  --after-fifteen OR 39 40 --after-fifteen AND 7 41
+  --after-fifteen AND 3 15 --after-fifteen OR 12 42
+  --all-positives --negative-seed 1 --negative-seed 2 --operator-bounds
+  --shared-guard-budget --min-guard-reads 19 --wire-credit --adaptive-charge
+  --trace-budget --preloaded-trace --guard-read-ceiling --or-trace-density --star-probes
+  --solver "$(lean --print-prefix)/bin/cadical"
+)
+chain=(--after-fifteen OR 5 10 --after-fifteen OR 0 45 --after-fifteen OR 4 46)
+python research/order3_prefix_search.py "${common[@]}" "${chain[@]}" --after-fifteen AND 14 47 --seconds 90
+python research/order3_prefix_search.py "${common[@]}" "${chain[@]}" --after-fifteen OR 14 47 --after-fifteen AND 1 48 --seconds 120
+python research/order3_prefix_search.py "${common[@]}" --after-fifteen OR 0 2 --seconds 60
+```
+
+## All twelve third-point partners for point 5
+
+Keep A and X and replace Y by OR(5,i) on the original point-input wires for every i from 0 to 12 other than 5. In all twelve branches the sixth non-guard operation must be another OR. Neither the fourth nor the fifth OR is fixed. The restrictions on the physical prefix, total size, guard reads and remaining gate split still apply.
+
+The full census covers 44,401,378 unordered independent pairs and 4,126,957 dependent OR pairs, counted per third-point choice. After applying the inherited certificates and the seed-10 certificates there were 14,877 distinct product columns across the family. The full enumerations agree with a separate discovery pass restricted to products that genuinely depend on the third OR. The 4,995 additional signed-maximal representatives have the following checked floor distribution: 20 ORs on 343 pools, 21 ORs on 2,255 pools, 22 ORs on 2,397 pools. Of the 4,995, 22 needed strengthened integer witnesses. Each packaged witness was independently checked and compared with its source record.
+
+| Third partner | Possible Z values | Independent residual products after seed | Dependent residual triples after seed | Distinct products in either residual | Final residual products |
+|---:|---:|---:|---:|---:|---:|
+| 0 | 2,715 | 1,403 | 1,561 | 1,780 | 0 |
+| 1 | 2,714 | 1,182 | 1,044 | 1,451 | 0 |
+| 2 | 2,723 | 1,514 | 1,661 | 1,893 | 0 |
+| 3 | 2,717 | 1,252 | 1,246 | 1,555 | 0 |
+| 4 | 2,724 | 1,340 | 1,398 | 1,689 | 0 |
+| 6 | 2,721 | 1,525 | 1,655 | 1,904 | 0 |
+| 7 | 2,718 | 1,271 | 1,050 | 1,547 | 0 |
+| 8 | 2,724 | 1,173 | 1,015 | 1,445 | 0 |
+| 9 | 2,713 | 1,407 | 1,219 | 1,706 | 0 |
+| 10 | 2,724 | 0 | 0 | 0 | 0 |
+| 11 | 2,724 | 1,169 | 1,039 | 1,443 | 0 |
+| 12 | 2,721 | 1,067 | 867 | 1,301 | 0 |
+
+Run the full family with `python research/order3_case35_h19_sixth_after_third.py --parent-cache /tmp/case35-parent.json`. The cached parent is accepted only when its digest matches the 5,676 previously verified pools.
+
+## Handoff for Y = OR(0,2)
+
+The third OR here reads original point wires 0 and 2. The fourth and fifth ORs are free. There are 2,714 possible fourth OR columns, 3,684,255 unordered independent pairs, and 342,475 dependent OR pairs. Before the extra high-positive-support certificates, the sixth-AND frontier had 1,444 independent and 748 dependent products, with 2,083 distinct values in the union. Among these, 166 product columns were true on at least nine of the 52 positives. Their 83 signed-maximal representatives were certified at OR floors of 21 (six pools) or 22 (77 pools).
+
+After those certificates, 1,272 independent products and 718 dependent products survive; the dependent products occur in 2,899 triples. Their union contains 1,899 products on three to eight positives, with 561 signed-maximal values. This is the next unfinished sixth-position case. A surviving column is only a candidate, not a satisfying circuit. The 60-second direct SAT query fixing A,X,OR(0,2) with at least nineteen guard reads returned UNKNOWN on 56 encoded rows and decoded no candidate.
+
+The exact sorted lists are in `case35-h19-0-2-sixth-frontier-47.json.gz`. The SHA-256 of the uncompressed JSON is `68d22bb3f42aa7b7d809b427298612c455616fcfcab7781a0617f06289808b7c`. Regenerate from the research checkout:
+
+```sh
+python research/order3_case35_h19_sixth_after_third.py --explore-pair 0 2 --parent-cache /tmp/case35-parent.json --write-frontier /tmp/sixth-0-2.json
+sha256sum /tmp/sixth-0-2.json
+```
+
+The later project snapshot at 2026-11-28 10:14:22 UTC still reports L-meta-2625 as a conjecture. Upstream commit 3f9d4b05338a269fbd2e6a9170b6c5ab2cba3bf9 still has reductions 50, 317 and 487. The pinned configuration, official checker and project definition sources match the checked upstream base. The 5,676 inherited pool ranks were replayed from their original ledgers in this session and matched the cache byte for byte. A clean invocation of the published seed verifier and a separate invocation of the published seventh-position verifier returned empty residuals.
