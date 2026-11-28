@@ -1,0 +1,21 @@
+# L-meta-2625 — Excluding a fifth ordinary AND
+
+Parent checkpoint f033e594b5aff20fd9e3f30292f504b5e2ac598f. Fix the same 17 physical gates of case 35, 63 physical gates in total and exactly 19 reads of guard wire 32. The suffix has ten ordinary ANDs and nineteen ORs. Ignore intervening guard ANDs when listing the non-guard operations. Tests use all 52 positive and 468 negative inputs. In the suffix fix A = AND(3,15), X = OR(12,42) and Y = OR(5,10) on the named unmasked wires.
+
+**The fourth and fifth non-guard operations must both be ORs.** The fourth follows from the parent. To test a fifth ordinary AND, call the unspecified fourth OR Z and the proposed fifth product P. P must depend on Y and Z. If it ignores Z, move Z and its unused descendants later to obtain the excluded fourth-AND order following A, X, Y. If Z is independent of Y and P ignores Y, move Y later instead to obtain the excluded order following A, X, Z. In each move, preserve the predecessor closure of the gates moved forward, their wiring and the physical gate counts. A path through a guard mask counts as a dependency.
+
+If Z is independent of Y, the normalized product has to be Y AND Z. If Z reads Y, its normalized product has to be Z AND v for v a prefix column, A, X, Y, or Z. In both cases the output may also be masked. Enumerating both cases preserves all realizations when the same Z value has two different derivations. There are 2,585 possible independent Z values, 144 that read Y, and 2,724 in their union.
+
+A certified pool supplies A and substitutes a signed dominating column for P, optionally by masking it. Reconstruct X, Y and Z in the original order when needed. Removing both paid ANDs leaves eight ordinary ANDs and at most nineteen ORs, with guard masks free. An OR floor of twenty excludes this relaxation. A product already supplied by an old wire or Z can likewise be deleted after preloading A.
+
+Replaying the 260 relevant inherited pools leaves 382 (Z,P) pairs and 310 distinct P values. Seventy-three maximal products suffice under signed dominance. The additional certificate floors were 20 on five pools, 21 on 37 and 22 on 31. The residual list is empty. Run `python research/order3_case35_h19_fifth_gate.py` to check the inherited and new witnesses and regenerate the census.
+
+Discovery used SciPy/HiGHS with an eight-second limit for each negative-clique optimization and no separate deadline on the positive packing for each negative row. Feasible witnesses were independently replayed. A separate direct query with the same physical prefix continued by OR(18,45), AND(4,46), at least nineteen guard reads and no fixed ordinary gate split. With 52 positives and seed indices 1 and 2 it reached 56 encoded rows. The pinned CaDiCaL solver timed out after 90 seconds: UNKNOWN, zero decoded candidates. This broader query contributes no exclusion.
+
+## Lean and project status
+
+The one-file theorem PlaneClosedGateProjection proves that filtering an evaluation order to any set of wire labels closed under both input edges preserves every retained wire value, even when the initial state agrees only on those labels. It covers arbitrary binary Boolean gates and arbitrary orders. This establishes the evaluation step used when removing operations outside a predecessor closure. The numeric coverage and OR floors are checked separately by the Python witness verifier.
+
+Pinned Lean 4.36.0, official verdict ACCEPTED (check), 1,715 kernel-rechecked constants and Lean axiom propext. A separate import checked the recorded statement and axiom list. The prepared one-file fork commit is 206d1f130f2a43d0b000663526fea6536836dcb9. The project snapshot at 2026-11-28 08:30:29 UTC lists L-meta-2625 as a conjecture. Upstream a9b6c1909233a9990b377020d836aa2ed729d0e3 has reductions 50, 317 and 487. The targeted desk response gave no lease, hence no renewal, release or upstream PR. PRs 7762 and 8170 are merged and their checks accepted. General 63-gate existence and the unrestricted lower-bound question remain unsettled.
+
+The direct SAT query is reproducible with the preceding checkpoint's exact invocation in research/results/2026-11-28-case35-h19-least-guard-preload.md, replacing its final physical AND(24,44) by OR(5,10), OR(18,45), AND(4,46) and retaining its 90-second solver budget.

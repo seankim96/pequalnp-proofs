@@ -1,0 +1,8 @@
+∀ (keep : Nat → Bool) (left right : Nat → Nat) (gate : Nat → Bool → Bool → Bool)
+    (order : List Nat),
+    (∀ i ∈ order, keep i = true → keep (left i) = true ∧ keep (right i) = true) →
+    let step := fun (s : Nat → Bool) (i : Nat) (j : Nat) =>
+      if j = i then gate i (s (left i)) (s (right i)) else s j
+    ∀ s t : Nat → Bool, (∀ j, keep j = true → s j = t j) →
+      ∀ j, keep j = true →
+        order.foldl step s j = (order.filter keep).foldl step t j
