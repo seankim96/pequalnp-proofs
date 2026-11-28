@@ -1,7 +1,6 @@
 """Sixth ordinary AND after two fixed operations and a masked point-pair OR."""
 import argparse
 from concurrent.futures import ProcessPoolExecutor
-from functools import lru_cache
 from hashlib import sha256
 from itertools import combinations
 import json
@@ -113,8 +112,123 @@ def close_point_two(checked):
         raise ValueError("uncovered product in the (0,2) branch")
 
 
+MASK_COVER = (
+    ("case35-h19-mask-cover-48-00.json.gz", "5a41358724ebe1967dc552bfd16cd49cd12148f40dd883a24e1c7039ff7af827"),
+    ("case35-h19-mask-cover-48-01.json.gz", "8fb912a141169a13b4c8ec779d9bef199f1da14d07871dc04e23bf1415ee4c27"),
+    ("case35-h19-mask-cover-48-02.json.gz", "a3f09cd005d65e261825d1e920adfcb996a5ebff7a52df1250574b55b8c9bcda"),
+    ("case35-h19-mask-cover-48-03.json.gz", "3906d9b90a468dcbc6b78a3e477075210e73752c965db890e4039ebefc9cf8cc"),
+    ("case35-h19-mask-cover-48-04.json.gz", "8d3d564ff6a1a8a55296050d1d4f60d23048ae2e8539598f99ef74042d725e1d"),
+    ("case35-h19-mask-cover-48-05.json.gz", "6cbc45e0951c3644479b746a4ce1d598dec65ddb30e414037e9ebc89ee057b9d"),
+    ("case35-h19-mask-cover-48-06.json.gz", "19780d9c6544c7f528d03c9fb80d42a30c8f35caa5fc4dc17856b6e7889a5dfe"),
+)
+
+
+def classify_masked():
+    b = parent_pool()
+    direct = set()
+    counts = [0, 0, 0, 0]
+    for i, j, mask, column, source in masked_cases():
+        if source is not None:
+            counts[mask] += 1
+        elif column == (b[i] | b[j]):
+            direct.add((i, j))
+        else:
+            raise ValueError(f"unexpected nonraw masked column at {(i, j, mask)}")
+    return counts[1:], direct
+
+
+def broader_count(closed):
+    b = parent_pool()
+    old = prefix_sources()
+    donors = [w for i, w in enumerate(old) if i != 32]
+    known = [b[i] | b[j] for i, j in closed]
+    columns = guard_unions(old)
+    redundant = sum(any(dominates(w, y) for w in donors) for y in columns)
+    covered = sum(any(dominates(w, y) for w in donors + known) for y in columns)
+    return len(columns), redundant, covered
+
+
+
+CENSUS_COLUMNS = (
+    "left", "right", "fourth_or_values", "independent_pairs", "dependent_pairs",
+    "independent_products_left", "dependent_triples_left", "dependent_products_left",
+    "distinct_products_left", "earlier_donor", "status", "frontier_sha256",
+)
+
+
+def frontier_bytes(ip, dp):
+    return json.dumps({"independent": [hex(p) for p in sorted(ip)],
+                       "dependent": [hex(p) for p in sorted(dp)]},
+                      separators=(",", ":")).encode()
+
+
+def point_row(checked, i, j):
+    n, pairs, triples, ip, dp = census(checked, i, j)
+    b = parent_pool()
+    donor = raw_supplier(b[i] | b[j])
+    count = len(ip | dp)
+    status = "covered" if count == 0 else "redirected" if donor is not None else "open"
+    data = frontier_bytes(ip, dp)
+    row = (i, j, n, n * (n + 1) // 2, pairs, len(ip), triples, len(dp), count,
+           "" if donor is None else donor, status, sha256(data).hexdigest())
+    return row, data
+
+
+def write_census(path, rows):
+    import csv
+    with path.open("w", newline="") as stream:
+        writer = csv.writer(stream, lineterminator="\n")
+        writer.writerow(CENSUS_COLUMNS)
+        writer.writerows(rows)
+
+
+def replay(scope, cache, pair=None, output=None, table=None):
+    checked = inherited(cache) + verified(POINT_TWO)
+    close_point_two(checked)
+    if scope == "point-two":
+        return
+    checked += verified(MASK_COVER)
+    print("common independent pairs", prove_common(checked))
+    counts, direct = classify_masked()
+    print("masked layouts redirected to earlier wires", counts)
+    if counts != [62, 70, 77] or len(direct) != 23:
+        raise ValueError("masked layout classification changed")
+    if pair:
+        jobs = [tuple(pair)]
+    elif scope == "all-points":
+        jobs = list(combinations(range(13), 2))
+    else:
+        jobs = sorted(direct)
+    closed = {tuple(sorted((5, i))) for i in range(13) if i != 5}
+    rows = []
+    for i, j in jobs:
+        row, data = point_row(checked, i, j)
+        rows.append(row)
+        print(dict(zip(CENSUS_COLUMNS, row)), flush=True)
+        if row[-2] != "open":
+            closed.add((i, j))
+        elif (i, j) in direct:
+            raise ValueError("uncovered exceptional masked branch")
+        if pair and output:
+            output.write_bytes(data)
+    if table:
+        write_census(table, rows)
+    if not pair:
+        print("all third OR columns, earlier-wire donors, total covered", broader_count(closed))
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--parent-cache", type=Path)
+    parser.add_argument("--scope", choices=("point-two", "masked", "all-points"), default="masked")
+    parser.add_argument("--pair", type=int, nargs=2, choices=range(13))
+    parser.add_argument("--write-frontier", type=Path)
+    parser.add_argument("--census-csv", type=Path)
     args = parser.parse_args()
-    close_point_two(inherited(args.parent_cache) + verified(POINT_TWO))
+    if args.pair and not args.pair[0] < args.pair[1]:
+        parser.error("--pair requires two distinct point indices in increasing order")
+    if args.write_frontier and not args.pair:
+        parser.error("--write-frontier requires --pair")
+    if args.pair and args.scope == "point-two":
+        parser.error("--pair requires the masked or all-points scope")
+    replay(args.scope, args.parent_cache, args.pair, args.write_frontier, args.census_csv)
