@@ -1,0 +1,14 @@
+∀ (pre post : List PEqualNP.CircuitLowerBounds.Gate) (g : PEqualNP.CircuitLowerBounds.Gate) (out n : Nat) (P N : List Bool → Prop),
+      let C := PEqualNP.CircuitLowerBounds.Circuit.mk (pre ++ g :: post) out
+      let separates := fun (D : PEqualNP.CircuitLowerBounds.Circuit) =>
+        ∀ r : List Bool, r.length = n → (P r → D.eval r = true) ∧ (N r → D.eval r = false)
+      PEqualNP.MetaComplexity.Monotone2 C → separates C →
+      (∀ D, PEqualNP.MetaComplexity.Monotone2 D → separates D → C.size ≤ D.size) →
+      ∀ src, src < n + pre.length →
+      ∃ r : List Bool, r.length = n ∧
+        let w := (PEqualNP.CircuitLowerBounds.Circuit.mk pre out).wires r
+        let bit := g.op.eval (g.inputs.map fun k => w.getD k false)
+        let readout := fun b => (PEqualNP.CircuitLowerBounds.Circuit.mk post out).eval (w ++ [b])
+        readout false = false ∧ readout true = true ∧
+          ((P r ∧ bit = true ∧ w.getD src false = false) ∨
+           (N r ∧ bit = false ∧ w.getD src false = true))
